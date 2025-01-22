@@ -404,6 +404,22 @@
                 app:layout_constraintTop_toBottomOf="@+id/negativeInput" />
 
             <Button
+                android:id="@+id/updateQP"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="32dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="32dp"
+                android:layout_weight="1"
+                android:visibility="gone"
+                android:backgroundTint="#4CAF50"
+                android:text="Update Question Paper"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/addQPBtn" />
+
+            <Button
                 android:id="@+id/addSubject"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -417,7 +433,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/addQPBtn" />
+                app:layout_constraintTop_toBottomOf="@+id/updateQP" />
 
 
         </androidx.constraintlayout.widget.ConstraintLayout>

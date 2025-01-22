@@ -21,6 +21,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -37,7 +38,10 @@ import com.google.firebase.storage.UploadTask;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import Mohammad.mustaqeem.crackadmin.Model.AddCategoryModel;
 import Mohammad.mustaqeem.crackadmin.Model.AddQuestionPaperModel;
@@ -52,14 +56,15 @@ public class addQuestionPaper extends AppCompatActivity {
     String[] categoryArray;
     String[] studyArray;
     String[] subCategoryArray;
-    String[] subjectArray;
     FirebaseFirestore database;
 
-    String plan;
+    String downloadUrlLink;
 
-    String catId;
+    String plan;
     
     String categoryName,subCategoryName,studyCategoryName,qpname,qpsubTitle,subjectName,totalQuestion,status;
+
+    String catId,subId,subjectId,qpId;
 
     ArrayList<AddCategoryModel> categoriesList;
     ArrayList<AddSubCategoryModel> subCategoriesList;
@@ -74,7 +79,7 @@ public class addQuestionPaper extends AppCompatActivity {
 
     String time,correctMarks,negativeMarks;
 
-    String subject;
+    String subject,subjectEdit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,9 +94,17 @@ public class addQuestionPaper extends AppCompatActivity {
         });
         dialog = new ProgressDialog(this);
 
+        storage = FirebaseStorage.getInstance();
+        database = FirebaseFirestore.getInstance();
+        categoriesList = new ArrayList<>();
+        subCategoriesList = new ArrayList<>();
+
+
 
         subject = getIntent().getStringExtra("subject");
         if (subject!=null){
+
+            //logic code for subject addition
             binding.questionSubTitile.setVisibility(View.GONE);
             binding.addQPBtn.setVisibility(View.GONE);
             binding.addSubject.setVisibility(View.VISIBLE);
@@ -105,6 +118,8 @@ public class addQuestionPaper extends AppCompatActivity {
             dialog.setCancelable(false);
             getStudyCategoryforsubject();
         }else{
+
+            // logic code for addition Question Paper
             dialog.setTitle("Uploading Question Paper");
             dialog.setMessage("Please wait...");
             dialog.setCancelable(false);
@@ -112,15 +127,29 @@ public class addQuestionPaper extends AppCompatActivity {
         }
 
 
-        storage = FirebaseStorage.getInstance();
-        database = FirebaseFirestore.getInstance();
-        categoriesList = new ArrayList<>();
-        subCategoriesList = new ArrayList<>();
 
-        getStatusList();
-        getPlanList();
+        //logic code for editing the question paper
+        qpId = getIntent().getStringExtra("qpId");
+        categoryName = getIntent().getStringExtra("categoryName");
+        subCategoryName = getIntent().getStringExtra("subCategoryName");
+        studyCategoryName = getIntent().getStringExtra("studyCategoryName");
+        subjectEdit = getIntent().getStringExtra("subjectEdit");
+        if (qpId!=null){
+            binding.addQPBtn.setVisibility(View.GONE);
+            binding.updateQP.setVisibility(View.VISIBLE);
 
-        getCategoryList();
+            if (subjectEdit!=null){
+                EditSubjectQuestionPaper();
+            }else{
+                EditQuestionPaperFilling();
+            }
+
+        }else{
+            getStatusList();
+            getPlanList();
+            getCategoryList();
+        }
+
 
         binding.selectBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -193,6 +222,21 @@ public class addQuestionPaper extends AppCompatActivity {
             }
         });
 
+        binding.updateQP.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if (imageUri!=null){
+
+                }
+//                if (subjectEdit!=null){
+//                    UpdateSubjectQP();
+//                }else{
+//                    UpdateQp();
+//                }
+            }
+        });
+
         binding.addSubject.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -211,7 +255,11 @@ public class addQuestionPaper extends AppCompatActivity {
         });
 
 
+
+
     }
+
+
 
 
     private void getStatusList() {
@@ -676,4 +724,150 @@ public class addQuestionPaper extends AppCompatActivity {
         }
     }
 
+    private void EditQuestionPaperFilling() {
+        database.collection("categories").whereEqualTo("categoryName", categoryName).get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (queryDocumentSnapshots.isEmpty()) {
+                        handleError("Category not found");
+                        return;
+                    }
+                    catId = queryDocumentSnapshots.getDocuments().get(0).getId();
+                    database.collection("categories").document(catId).collection("subCategories")
+                            .whereEqualTo("subCategoryName", subCategoryName).get()
+                            .addOnSuccessListener(queryDocumentSnapshots1 -> {
+                                if (queryDocumentSnapshots1.isEmpty()) {
+                                    handleError("Sub-category not found");
+                                    return;
+                                }
+                                subId = queryDocumentSnapshots1.getDocuments().get(0).getId();
+                                database.collection("categories").document(catId).collection("subCategories").document(subId)
+                                        .collection(studyCategoryName).document(qpId).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                                            @Override
+                                            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                                                AddQuestionPaperModel addQuestionPaperModel = documentSnapshot.toObject(AddQuestionPaperModel.class);
+                                                if (addQuestionPaperModel.getQpImage()!=null){
+                                                    Glide.with(addQuestionPaper.this)
+                                                            .load(addQuestionPaperModel.getQpImage())
+                                                            .into(binding.image);
+
+                                                    downloadUrlLink = addQuestionPaperModel.getQpImage();
+                                                }
+
+                                               setQuestionInfo(addQuestionPaperModel);
+                                            }
+                                        }).addOnFailureListener(new OnFailureListener() {
+                                            @Override
+                                            public void onFailure(@NonNull Exception e) {
+
+                                            }
+                                        });
+                            })
+                            .addOnFailureListener(e -> {
+                                dialog.dismiss();
+                                handleError("Error fetching sub-category");
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    dialog.dismiss();
+                    handleError("Error fetching category");
+                });
+    }
+
+    private void EditSubjectQuestionPaper() {
+        // Fetch the category by name
+        database.collection("categories").whereEqualTo("categoryName", categoryName).get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (queryDocumentSnapshots.isEmpty()) {
+                        dialog.dismiss();
+                        Toast.makeText(addQuestionPaper.this, "No categories found", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    catId = queryDocumentSnapshots.getDocuments().get(0).getId();
+
+                    // Fetch the sub-category by name
+                    database.collection("categories").document(catId).collection("subCategories")
+                            .whereEqualTo("subCategoryName", subCategoryName).get()
+                            .addOnSuccessListener(queryDocumentSnapshots1 -> {
+                                if (queryDocumentSnapshots1.isEmpty()) {
+                                    dialog.dismiss();
+                                    Toast.makeText(addQuestionPaper.this, "No sub-categories found", Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+                                subId = queryDocumentSnapshots1.getDocuments().get(0).getId();
+
+                                // Fetch the subject by name
+                                database.collection("categories").document(catId)
+                                        .collection("subCategories").document(subId)
+                                        .collection(studyCategoryName).whereEqualTo("subjectName", subjectEdit).get()
+                                        .addOnSuccessListener(queryDocumentSnapshots2 -> {
+                                            if (queryDocumentSnapshots2.isEmpty()) {
+                                                dialog.dismiss();
+                                                Toast.makeText(addQuestionPaper.this, "No subjects found", Toast.LENGTH_SHORT).show();
+                                                return;
+                                            }
+                                            subjectId = queryDocumentSnapshots2.getDocuments().get(0).getId();
+
+                                            // Fetch the specific question paper
+                                            database.collection("categories").document(catId)
+                                                    .collection("subCategories").document(subId)
+                                                    .collection(studyCategoryName).document(subjectId)
+                                                    .collection("subject_question_paper").document(qpId).get()
+                                                    .addOnSuccessListener(documentSnapshot -> {
+                                                        if (documentSnapshot.exists()) {
+                                                            AddQuestionPaperModel addQuestionPaperModel = documentSnapshot.toObject(AddQuestionPaperModel.class);
+                                                            if (addQuestionPaperModel != null && addQuestionPaperModel.getQpImage() != null) {
+                                                                Glide.with(addQuestionPaper.this)
+                                                                        .load(addQuestionPaperModel.getQpImage())
+                                                                        .into(binding.image);
+                                                                downloadUrlLink = addQuestionPaperModel.getQpImage();
+                                                            }
+                                                            setQuestionInfo(addQuestionPaperModel);
+                                                        } else {
+                                                            dialog.dismiss();
+                                                            Toast.makeText(addQuestionPaper.this, "Question not found", Toast.LENGTH_SHORT).show();
+                                                        }
+                                                    })
+                                                    .addOnFailureListener(e -> {
+                                                        dialog.dismiss();
+                                                        Toast.makeText(addQuestionPaper.this, "Failed to fetch question details", Toast.LENGTH_SHORT).show();
+                                                    });
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            dialog.dismiss();
+                                            Toast.makeText(addQuestionPaper.this, "Failed to fetch study categories", Toast.LENGTH_SHORT).show();
+                                        });
+                            })
+                            .addOnFailureListener(e -> {
+                                dialog.dismiss();
+                                Toast.makeText(addQuestionPaper.this, "Failed to fetch sub-categories", Toast.LENGTH_SHORT).show();
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    dialog.dismiss();
+                    Toast.makeText(addQuestionPaper.this, "Failed to fetch categories", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void setQuestionInfo(AddQuestionPaperModel addQuestionPaperModel) {
+        binding.status.setText(addQuestionPaperModel.getStatus());
+        binding.plan.setText(addQuestionPaperModel.getPlan());
+        binding.categoryName.setText(categoryName);
+        binding.subcategoryName.setText(subCategoryName);
+        binding.studyCategory.setText(studyCategoryName);
+        binding.qpname.setText(addQuestionPaperModel.getQpName());
+        binding.qpsubTitle.setText(addQuestionPaperModel.getQpSubTitle());
+        binding.time.setText(addQuestionPaperModel.getTime());
+        binding.totalQuestion.setText(addQuestionPaperModel.getTotalQuestion());
+        binding.correct.setText(addQuestionPaperModel.getCorrectMarks());
+        binding.negative.setText(addQuestionPaperModel.getNegativeMarks());
+    }
+
+    private void handleError(String message) {
+        dialog.dismiss();
+        Toast.makeText(addQuestionPaper.this, message, Toast.LENGTH_SHORT).show();
+    }
+
+    private void UpdateQp() {
+
+    }
 }

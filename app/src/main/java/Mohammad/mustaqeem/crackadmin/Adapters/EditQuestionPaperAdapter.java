@@ -89,15 +89,17 @@ public class EditQuestionPaperAdapter extends RecyclerView.Adapter<EditQuestionP
                     intent.putExtra("categoryName",categoryName);
                     intent.putExtra("subCategoryName",subCategoryName);
                     intent.putExtra("studyCategoryName",studyCategoryName);
-                    intent.putExtra("subject",subject);
+                    intent.putExtra("subjectEdit",subject);
                     intent.putExtra("qpId", questionPaperModel.getQpId());
                     context.startActivity(intent);
+
                 }else{
+
                     Intent intent = new Intent(context, addQuestionPaper.class);
                     intent.putExtra("categoryName",categoryName);
                     intent.putExtra("subCategoryName",subCategoryName);
                     intent.putExtra("studyCategoryName",studyCategoryName);
-                    intent.putExtra("qId",questionPaperModel.getQpId());
+                    intent.putExtra("qpId",questionPaperModel.getQpId());
                     context.startActivity(intent);
                 }
 
@@ -184,6 +186,8 @@ public class EditQuestionPaperAdapter extends RecyclerView.Adapter<EditQuestionP
                     Toast.makeText(context, "Failed to retrieve category", Toast.LENGTH_SHORT).show();
                 });
     }
+
+
 
     // Helper function to delete the question document
     private void deleteQuestionDocument(String catId, String subCatId, String studyCategoryName, String qID, int position) {
