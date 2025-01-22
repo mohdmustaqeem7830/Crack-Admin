@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "200328111131",
+    "project_id": "crack-competition-990d1",
+    "storage_bucket": "crack-competition-990d1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:200328111131:android:bf6a47585ef182a9c384be",
+        "android_client_info": {
+          "package_name": "Mohammad.mustaqeem.crackadmin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA5mWdXW__1_LcsnIuHJMSWJKL9usxxcN0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:200328111131:android:c0a18b286264d92dc384be",
+        "android_client_info": {
+          "package_name": "Mohammad.mustaqeem.crackcompetition"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA5mWdXW__1_LcsnIuHJMSWJKL9usxxcN0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
