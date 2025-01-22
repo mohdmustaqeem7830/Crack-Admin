@@ -2,6 +2,7 @@ package Mohammad.mustaqeem.crackadmin.Activites;
 
 import android.app.ProgressDialog;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -129,8 +130,7 @@ public class EditQuestionPaper extends AppCompatActivity {
                 String category = binding.categoryName.getText().toString();
                 String subCategory =binding.subcategoryName.getText().toString();
                 String studyCategory = binding.studyCategory.getText().toString();
-                getQuestionPaperList(category,subCategory,studyCategory);
-                if (binding.subject.getText().toString()==null){
+                if (binding.subject.getText().toString().isEmpty()){
                     getQuestionPaperList(category,subCategory,studyCategory);
                 }else{
                     getSubjectQuestionPaperList();
@@ -351,11 +351,10 @@ public class EditQuestionPaper extends AppCompatActivity {
                                                                     }
                                                                 }
 
-                                                                Toast.makeText(EditQuestionPaper.this, String.valueOf(qplist.size()), Toast.LENGTH_SHORT).show();
-//                                                                adapter = new EditQuestionPaperAdapter(EditQuestionPaper.this, qplist, categoryName, subCategoryName,studyCategoryName,subjectName);
-//                                                                binding.recyclerView.setLayoutManager(new LinearLayoutManager(EditQuestionPaper.this));
-//                                                                binding.recyclerView.setAdapter(adapter);
-//                                                                adapter.notifyDataSetChanged();
+                                                                adapter = new EditQuestionPaperAdapter(EditQuestionPaper.this, qplist, categoryName, subCategoryName,studyCategoryName,subjectName);
+                                                                binding.recyclerView.setLayoutManager(new LinearLayoutManager(EditQuestionPaper.this));
+                                                                binding.recyclerView.setAdapter(adapter);
+                                                                adapter.notifyDataSetChanged();
                                                                 dialog.dismiss();
                                                             }
                                                         });
@@ -410,12 +409,10 @@ public class EditQuestionPaper extends AppCompatActivity {
                                                         qplist.add(model);
                                                     }
                                                 }
-
-                                                Toast.makeText(this, String.valueOf(qplist.size()), Toast.LENGTH_SHORT).show();
-//                                                adapter = new EditQuestionPaperAdapter(EditQuestionPaper.this, qplist, categoryName, subCategoryName,studyCategoryName,"");
-//                                                binding.recyclerView.setLayoutManager(new LinearLayoutManager(EditQuestionPaper.this));
-//                                                binding.recyclerView.setAdapter(adapter);
-//                                                adapter.notifyDataSetChanged();
+                                                 adapter = new EditQuestionPaperAdapter(EditQuestionPaper.this, qplist, categoryName, subCategoryName,studyCategoryName,null);
+                                                binding.recyclerView.setLayoutManager(new LinearLayoutManager(EditQuestionPaper.this));
+                                                binding.recyclerView.setAdapter(adapter);
+                                                adapter.notifyDataSetChanged();
                                                 dialog.dismiss();
 
                                             }

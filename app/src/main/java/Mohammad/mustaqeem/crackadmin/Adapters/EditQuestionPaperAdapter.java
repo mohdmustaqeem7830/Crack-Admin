@@ -2,6 +2,7 @@ package Mohammad.mustaqeem.crackadmin.Adapters;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +14,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 
+import Mohammad.mustaqeem.crackadmin.Activites.AddQuestion;
+import Mohammad.mustaqeem.crackadmin.Activites.AddSubjectQuestion;
 import Mohammad.mustaqeem.crackadmin.Model.AddQuestionPaperModel;
 import Mohammad.mustaqeem.crackadmin.Model.Question;
 import Mohammad.mustaqeem.crackadmin.databinding.QuestionListItemsBinding;
@@ -70,6 +73,29 @@ public class EditQuestionPaperAdapter extends RecyclerView.Adapter<EditQuestionP
 //                    Deletquestion(question.getqId(),position);
 
                 }
+            }
+        });
+
+        holder.binding.editBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(subject!=null){
+                    Intent intent = new Intent(context, AddSubjectQuestion.class);
+                    intent.putExtra("categoryName",categoryName);
+                    intent.putExtra("subCategoryName",subCategoryName);
+                    intent.putExtra("studyCategoryName",studyCategoryName);
+                    intent.putExtra("subject",subject);
+                    intent.putExtra("qpId", questionPaperModel.getQpId());
+                    context.startActivity(intent);
+                }else{
+                    Intent intent = new Intent(context, AddQuestion.class);
+                    intent.putExtra("categoryName",categoryName);
+                    intent.putExtra("subCategoryName",subCategoryName);
+                    intent.putExtra("studyCategoryName",studyCategoryName);
+                    intent.putExtra("qId",questionPaperModel.getQpId());
+                    context.startActivity(intent);
+                }
+
             }
         });
     }
