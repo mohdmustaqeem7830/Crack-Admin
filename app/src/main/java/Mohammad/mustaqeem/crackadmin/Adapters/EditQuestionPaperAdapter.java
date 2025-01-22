@@ -202,7 +202,7 @@ public class EditQuestionPaperAdapter extends RecyclerView.Adapter<EditQuestionP
                 });
     }
 
-    private void DeleteSubjectQuestion(String qID, int position) {
+    private void DeleteSubjectQuestionPaper(String qID, int position) {
 
         database.collection("categories").whereEqualTo("categoryName", categoryName).get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
@@ -240,21 +240,7 @@ public class EditQuestionPaperAdapter extends RecyclerView.Adapter<EditQuestionP
                                             database.collection("categories").document(catId)
                                                     .collection("subCategories").document(subcatId)
                                                     .collection(studyCategoryName).document(subjectId)
-                                                    .collection("subject_question_paper").whereEqualTo("qpName", qpname).get()
-                                                    .addOnSuccessListener(queryDocumentSnapshots3 -> {
-                                                        if (queryDocumentSnapshots3.isEmpty()) {
-                                                            dialog.dismiss();
-                                                            Toast.makeText(context, "No question papers found", Toast.LENGTH_SHORT).show();
-                                                            return;
-                                                        }
-                                                        String qpID = queryDocumentSnapshots3.getDocuments().get(0).getId();
-                                                        DocumentReference qpDocRef = database.collection("categories").document(catId)
-                                                                .collection("subCategories").document(subcatId)
-                                                                .collection(studyCategoryName).document(subjectId)
-                                                                .collection("subject_question_paper").document(qpID);
-
-                                                        // Fetch the question document
-                                                        qpDocRef.collection("questions").document(qID).get().addOnSuccessListener(documentSnapshot -> {
+                                                    .collection("subject_question_paper").document(qID).get().addOnSuccessListener(documentSnapshot -> {
                                                             if (documentSnapshot.exists()) {
                                                                 Question question = documentSnapshot.toObject(Question.class);
                                                                 String imageUrl =  question.getqImage();
@@ -264,14 +250,14 @@ public class EditQuestionPaperAdapter extends RecyclerView.Adapter<EditQuestionP
                                                                     StorageReference imageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl);
                                                                     imageRef.delete().addOnSuccessListener(aVoid -> {
                                                                         // After image deletion, delete the question document
-                                                                        deleteQuestionDocument(qpDocRef, qID, position);
+                                                                        deleteQuestionDocument(catId,subcatId,studyCategoryName,subjectId, qID, position);
                                                                     }).addOnFailureListener(e -> {
                                                                         dialog.dismiss();
                                                                         Toast.makeText(context, "Failed to delete image", Toast.LENGTH_SHORT).show();
-                                                                        deleteQuestionDocument(qpDocRef, qID, position);
+                                                                        deleteQuestionDocument(catId,subcatId,studyCategoryName,subjectId, qID, position);
                                                                     });
                                                                 } else {
-                                                                    deleteQuestionDocument(qpDocRef, qID, position);
+                                                                    deleteQuestionDocument(catId,subcatId,studyCategoryName,subjectId, qID, position);
                                                                 }
                                                             } else {
                                                                 dialog.dismiss();
@@ -283,11 +269,6 @@ public class EditQuestionPaperAdapter extends RecyclerView.Adapter<EditQuestionP
                                                         });
 
                                                     })
-                                                    .addOnFailureListener(e -> {
-                                                        dialog.dismiss();
-                                                        Toast.makeText(context, "Failed to fetch question papers", Toast.LENGTH_SHORT).show();
-                                                    });
-                                        })
                                         .addOnFailureListener(e -> {
                                             dialog.dismiss();
                                             Toast.makeText(context, "Failed to fetch study categories", Toast.LENGTH_SHORT).show();
@@ -304,18 +285,23 @@ public class EditQuestionPaperAdapter extends RecyclerView.Adapter<EditQuestionP
                 });
     }
 
-    // Method to delete the question document and update the RecyclerView
-    private void deleteQuestionDocument(DocumentReference qpDocRef, String qID, int position) {
-        qpDocRef.collection("questions").document(qID).delete().addOnSuccessListener(unused -> {
-            dialog.dismiss();
-            Toast.makeText(context, "Deleted Successfully", Toast.LENGTH_SHORT).show();
-
-            questionpaperArrayList.remove(position);
-            notifyDataSetChanged();
-        }).addOnFailureListener(e -> {
-            dialog.dismiss();
-            Toast.makeText(context, "Failed to delete question", Toast.LENGTH_SHORT).show();
-        });
+    // Helper function to delete the question document
+    private void deleteQuestionDocument(String catId, String subCatId, String studyCategoryName, String subjectId,String qID, int position) {
+        database.collection("categories").document(catId)
+                .collection("subCategories").document(subCatId)
+                .collection(studyCategoryName).document(subjectId)
+                .collection("subject_question_paper").
+                document(qID).delete()
+                .addOnSuccessListener(aVoid -> {
+                    dialog.dismiss();
+                    questionpaperArrayList.remove(position);
+                    notifyDataSetChanged();
+                    Toast.makeText(context, "Question Paper deleted successfully", Toast.LENGTH_SHORT).show();
+                    // Optionally, update UI or notify user
+                }).addOnFailureListener(e -> {
+                    dialog.dismiss();
+                    Toast.makeText(context, "Failed to delete question", Toast.LENGTH_SHORT).show();
+                });
     }
 
 }
