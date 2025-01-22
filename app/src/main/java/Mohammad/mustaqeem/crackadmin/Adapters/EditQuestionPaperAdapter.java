@@ -141,8 +141,8 @@ public class EditQuestionPaperAdapter extends RecyclerView.Adapter<EditQuestionP
                                                 .collection(studyCategoryName).document(qID).get()
                                                                 .addOnSuccessListener(documentSnapshot -> {
                                                                     if (documentSnapshot.exists()) {
-                                                                        Question question = documentSnapshot.toObject(Question.class);
-                                                                        String imageUrl = question.getqImage();
+                                                                        AddQuestionPaperModel question = documentSnapshot.toObject(AddQuestionPaperModel.class);
+                                                                        String imageUrl = question.getQpImage();
 
                                                                         if (imageUrl != null) {
                                                                             // Delete image from Firebase Storage
@@ -242,8 +242,8 @@ public class EditQuestionPaperAdapter extends RecyclerView.Adapter<EditQuestionP
                                                     .collection(studyCategoryName).document(subjectId)
                                                     .collection("subject_question_paper").document(qID).get().addOnSuccessListener(documentSnapshot -> {
                                                             if (documentSnapshot.exists()) {
-                                                                Question question = documentSnapshot.toObject(Question.class);
-                                                                String imageUrl =  question.getqImage();
+                                                                AddQuestionPaperModel questionPaperModel = documentSnapshot.toObject(AddQuestionPaperModel.class);
+                                                                String imageUrl =  questionPaperModel.getQpImage();
 
                                                                 if (imageUrl != null) {
                                                                     // Delete image from Firebase Storage
