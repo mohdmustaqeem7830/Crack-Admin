@@ -98,6 +98,7 @@ public class EditPDFAdapter extends RecyclerView.Adapter<EditPDFAdapter.EditPDFV
                 intent.putExtra("studyCategoryName",studyCategoryName);
                 intent.putExtra("subject",subject);
                 intent.putExtra("subjectId",subjectId);
+                intent.putExtra("pdfUrl",pdf.getPdfUrl());
                 intent.putExtra("edit","edit");
                 context.startActivity(intent);
             }

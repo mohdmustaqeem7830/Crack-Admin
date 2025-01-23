@@ -27,10 +27,14 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 import Mohammad.mustaqeem.crackadmin.Model.AddCategoryModel;
@@ -50,7 +54,7 @@ public class AddPDF extends AppCompatActivity {
 
     Uri pdfUri;
 
-    String pdfUrl;
+    String pdfUrl,pdfId;
     ArrayList<AddCategoryModel> categoriesList;
     ArrayList<AddSubCategoryModel> subCategoriesList;
 
@@ -58,6 +62,7 @@ public class AddPDF extends AppCompatActivity {
     private FirebaseFirestore database;
 
     String categoryName, subCategoryName, studyCategoryName, name, subTitle,subjectName;
+    String catId,subId,subjectId,edit;
 
 
     private ProgressDialog progressDialog;
@@ -80,11 +85,7 @@ public class AddPDF extends AppCompatActivity {
             binding.add.setVisibility(View.VISIBLE);
             binding.selecter3.setVisibility(View.VISIBLE);
         }
-
-
-
-
-
+        
         storage = FirebaseStorage.getInstance();
         database = FirebaseFirestore.getInstance();
         categoriesList = new ArrayList<>();
@@ -92,6 +93,33 @@ public class AddPDF extends AppCompatActivity {
 
         progressDialog = new ProgressDialog(this);
         progressDialog.setTitle("Uploading...");
+
+
+        categoryName = getIntent().getStringExtra("categoryName");
+        subCategoryName = getIntent().getStringExtra("subCategoryName");
+        studyCategoryName = getIntent().getStringExtra("studyCategoryName");
+        catId = getIntent().getStringExtra("catId");
+        subId = getIntent().getStringExtra("subId");
+        subjectId = getIntent().getStringExtra("subjectId");
+        edit = getIntent().getStringExtra("edit");
+        pdfUrl = getIntent().getStringExtra("pdfUrl");
+        subjectName = getIntent().getStringExtra("subject");
+
+        if (edit!=null){
+            binding.selecter1.setVisibility(View.GONE);
+            binding.selecter2.setVisibility(View.GONE);
+            binding.selecter3.setVisibility(View.GONE);
+            binding.add.setVisibility(View.GONE);
+            binding.addQPBtn.setVisibility(View.GONE);
+            binding.updatePDF.setVisibility(View.VISIBLE);
+            if (studyCategoryName.equals("Subject Notes")|| studyCategoryName.equals("Course Books")){
+                setDetailSubjectPdf();
+            }else{
+                setDetailPdf();
+            }
+        }
+
+
 
         getCategoryList();
         binding.selectBtn.setOnClickListener(new View.OnClickListener() {
@@ -101,7 +129,7 @@ public class AddPDF extends AppCompatActivity {
                 subCategoryName = binding.subcategoryName.getText().toString();
                 name = binding.qpname.getText().toString();
                 subTitle = binding.qpsubTitle.getText().toString();
-                if (categoryName.isEmpty() || subCategoryName.isEmpty() || name.isEmpty() || subTitle.isEmpty()) {
+                if (name.isEmpty() || subTitle.isEmpty()) {
                     Toast.makeText(AddPDF.this, "Please fill all the above field", Toast.LENGTH_SHORT).show();
                 } else {
                     openPDFGallery();
@@ -150,7 +178,29 @@ public class AddPDF extends AppCompatActivity {
                 uploadPDFToStorage();
             }
         });
+
+        binding.updatePDF.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (studyCategoryName.equals("Subject Notes")|| studyCategoryName.equals("Course Books")){
+                    if (pdfUri!=null){
+                        pdfsubjectDeleteAndUpdatePdf(pdfUrl);
+                    }else{
+                        updateSubjectPDF(pdfUrl);
+                    }
+                }else{
+                    if (pdfUri!=null){
+                        pdfsubjectDeleteAndUpdatePdf(pdfUrl);
+                    }
+                    else{
+                       updatePDF(pdfUrl);
+                    }
+                }
+            }
+        });
     }
+
+
 
 
     public void getCategoryList() {
@@ -430,5 +480,153 @@ public class AddPDF extends AppCompatActivity {
         });
     }
 
+
+    //Editing pdf
+    private void setDetailPdf() {
+
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setTitle("Fetching details");
+        progressDialog.setCancelable(false);
+        progressDialog.setMessage("Please wait ....");
+        progressDialog.show();
+        // After deleting from Storage, delete from Firestore
+        database.collection("categories").document(catId)
+                .collection("subCategories").document(subId)
+                .collection(studyCategoryName).whereEqualTo("pdfUrl", pdfUrl).get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        if (!queryDocumentSnapshots.isEmpty()){
+                            pdfId = queryDocumentSnapshots.getDocuments().get(0).getId();
+                            AddPDFModel pdfModel = queryDocumentSnapshots.getDocuments().get(0).toObject(AddPDFModel.class);
+                            binding.updatePDF.setVisibility(View.VISIBLE);
+                            binding.qpname.setText(pdfModel.getPdfName());
+                            binding.qpsubTitle.setText(pdfModel.getPdfSubName());
+                            progressDialog.dismiss();
+                        }
+
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        progressDialog.dismiss();
+                        Toast.makeText(AddPDF.this, "PDF Not Found", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+
+    }
+
+    private void setDetailSubjectPdf() {
+
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setTitle("Fetching details");
+        progressDialog.setCancelable(false);
+        progressDialog.setMessage("Please wait ....");
+        progressDialog.show();
+        // After deleting from Storage, delete from Firestore
+        database.collection("categories").document(catId)
+                .collection("subCategories").document(subId)
+                .collection(studyCategoryName).document(subjectId).collection(subjectName).whereEqualTo("pdfUrl", pdfUrl).get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        if (!queryDocumentSnapshots.isEmpty()){
+                            pdfId = queryDocumentSnapshots.getDocuments().get(0).getId();
+                            AddPDFModel pdfModel = queryDocumentSnapshots.getDocuments().get(0).toObject(AddPDFModel.class);
+
+                            binding.qpname.setText(pdfModel.getPdfName());
+                            binding.qpsubTitle.setText(pdfModel.getPdfSubName());
+                            progressDialog.dismiss();
+                        }
+
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        progressDialog.dismiss();
+                        Toast.makeText(AddPDF.this, "PDF Not Found", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void pdfsubjectDeleteAndUpdatePdf(String pdfUrl) {
+            ProgressDialog progressDialog = new ProgressDialog(this);
+            progressDialog.setTitle("Updating PDF");
+            progressDialog.setMessage("Please wait...");
+            progressDialog.setCancelable(false);
+            progressDialog.show();
+            FirebaseStorage storage = FirebaseStorage.getInstance();
+
+            try {
+                StorageReference oldPdfRef = storage.getReferenceFromUrl(pdfUrl);
+                oldPdfRef.delete().addOnSuccessListener(unused -> {
+                    StorageReference newPdfRef = oldPdfRef;
+                    newPdfRef.putFile(pdfUri).addOnSuccessListener(taskSnapshot -> {
+                        newPdfRef.getDownloadUrl().addOnSuccessListener(newUrl -> {
+                            progressDialog.dismiss();
+                            if (studyCategoryName.equals("Subject Notes")|| studyCategoryName.equals("Course Books")){
+                               updateSubjectPDF(newUrl.toString());
+                            }else{
+                               updatePDF(newUrl.toString());
+                            }
+
+                        });
+                    }).addOnFailureListener(e -> {
+                        progressDialog.dismiss();
+                        Toast.makeText(this, "Failed to upload new PDF: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+                }).addOnFailureListener(e -> {
+                    progressDialog.dismiss();
+                    Toast.makeText(this, "Failed to delete old PDF: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+            } catch (Exception e) {
+                // Handle invalid URL errors
+                progressDialog.dismiss();
+                Toast.makeText(this, "Invalid URL: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+    }
+    private void updatePDF(String pdfUrl) {
+        Map<String, Object> model = new HashMap<>();
+        model.put("pdfName",binding.qpname.getText().toString().trim());
+        model.put("pdfSubName",binding.qpsubTitle.getText().toString().trim());
+        model.put("pdfUrl",pdfUrl);
+        
+        database.collection("categories").document(catId).collection("subCategories").document(subId)
+                .collection(studyCategoryName).document(pdfId).update(model).addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        progressDialog.dismiss();
+                        Toast.makeText(AddPDF.this, "Updated PDF Successfully", Toast.LENGTH_SHORT).show();
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        progressDialog.dismiss();
+                        Toast.makeText(AddPDF.this, "Failed to Update PDF", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void updateSubjectPDF(String pdfUrl) {
+
+        Map<String, Object> model = new HashMap<>();
+        model.put("pdfName",binding.qpname.getText().toString().trim());
+        model.put("pdfSubName",binding.qpsubTitle.getText().toString().trim());
+        model.put("pdfUrl",pdfUrl);
+
+        database.collection("categories").document(catId).collection("subCategories").document(subId)
+                .collection(studyCategoryName).document(subjectId).collection(subjectName).document(pdfId).update(model).addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        progressDialog.dismiss();
+                        Toast.makeText(AddPDF.this, "Updated PDF Successfully", Toast.LENGTH_SHORT).show();
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        progressDialog.dismiss();
+                        Toast.makeText(AddPDF.this, "Failed to Update PDF", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
 
 }
