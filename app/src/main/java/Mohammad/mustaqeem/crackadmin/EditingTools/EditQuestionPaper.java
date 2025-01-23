@@ -1,8 +1,7 @@
-package Mohammad.mustaqeem.crackadmin.Activites;
+package Mohammad.mustaqeem.crackadmin.EditingTools;
 
 import android.app.ProgressDialog;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -28,7 +27,6 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
-import Mohammad.mustaqeem.crackadmin.Adapters.EditQuestionAdapter;
 import Mohammad.mustaqeem.crackadmin.Adapters.EditQuestionPaperAdapter;
 import Mohammad.mustaqeem.crackadmin.Model.AddCategoryModel;
 import Mohammad.mustaqeem.crackadmin.Model.AddQuestionPaperModel;
@@ -36,7 +34,6 @@ import Mohammad.mustaqeem.crackadmin.Model.AddSubCategoryModel;
 import Mohammad.mustaqeem.crackadmin.Model.Question;
 import Mohammad.mustaqeem.crackadmin.Model.Subject;
 import Mohammad.mustaqeem.crackadmin.R;
-import Mohammad.mustaqeem.crackadmin.databinding.ActivityEditQuestionBinding;
 import Mohammad.mustaqeem.crackadmin.databinding.ActivityEditQuestionPaperBinding;
 
 public class EditQuestionPaper extends AppCompatActivity {

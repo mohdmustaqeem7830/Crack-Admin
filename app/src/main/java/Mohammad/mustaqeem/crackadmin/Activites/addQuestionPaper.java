@@ -106,6 +106,8 @@ public class addQuestionPaper extends AppCompatActivity {
 
             //logic code for subject addition
             binding.questionSubTitile.setVisibility(View.GONE);
+            binding.status.setVisibility(View.GONE);
+            binding.plan.setVisibility(View.GONE);
             binding.addQPBtn.setVisibility(View.GONE);
             binding.addSubject.setVisibility(View.VISIBLE);
             binding.totalQuestion.setVisibility(View.GONE);

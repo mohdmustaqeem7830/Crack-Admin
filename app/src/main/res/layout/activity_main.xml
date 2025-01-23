@@ -259,14 +259,14 @@
                             android:textColor="@color/black"/>
 
                         <Button
-                            android:id="@+id/deleteSubject"
+                            android:id="@+id/editSubject"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_margin="8dp"
                             android:layout_columnSpan="1"
                             android:layout_columnWeight="1"
                            android:background="@drawable/backgroundselector"
-                            android:text="Delete Subjects"
+                            android:text="Edit Subjects"
                             android:textColor="@color/black"/>
 
                     </GridLayout>

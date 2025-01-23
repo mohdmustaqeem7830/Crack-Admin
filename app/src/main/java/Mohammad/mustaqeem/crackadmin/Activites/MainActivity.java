@@ -1,7 +1,5 @@
 package Mohammad.mustaqeem.crackadmin.Activites;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -13,6 +11,8 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import Mohammad.mustaqeem.crackadmin.EditingTools.EditQuestion;
+import Mohammad.mustaqeem.crackadmin.EditingTools.EditQuestionPaper;
 import Mohammad.mustaqeem.crackadmin.R;
 import Mohammad.mustaqeem.crackadmin.databinding.ActivityMainBinding;
 
@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
         binding.editQuePaperBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this,EditQuestionPaper.class));
+                startActivity(new Intent(MainActivity.this, EditQuestionPaper.class));
             }
         });
 
@@ -83,10 +83,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         
-        binding.deleteSubject.setOnClickListener(new View.OnClickListener() {
+        binding.editSubject.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "In progress", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(MainActivity.this, EditQuestionPaper.class);
+                intent.putExtra("subject","subject");
+                startActivity(intent);
             }
         });
 
@@ -101,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
         binding.editSubjectQuetion.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this,EditQuestion.class));
+                startActivity(new Intent(MainActivity.this, EditQuestion.class));
             }
         });
 
