@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -27,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import Mohammad.mustaqeem.crackadmin.Adapters.EditQuestionPaperAdapter;
+import Mohammad.mustaqeem.crackadmin.Adapters.EditSubjectAdapter;
 import Mohammad.mustaqeem.crackadmin.Model.AddCategoryModel;
 import Mohammad.mustaqeem.crackadmin.Model.AddQuestionPaperModel;
 import Mohammad.mustaqeem.crackadmin.Model.AddSubCategoryModel;
@@ -43,7 +45,7 @@ public class EditSubject extends AppCompatActivity {
     FirebaseFirestore database;
     String[] qpArray;
 
-    EditQuestionPaperAdapter adapter;
+    EditSubjectAdapter adapter;
 
     String[] typeArray;
     String categoryName,subCategoryName,studyCategoryName,subjectName,qpname,qtype;
@@ -73,7 +75,7 @@ public class EditSubject extends AppCompatActivity {
         database = FirebaseFirestore.getInstance();
 
         dialog = new ProgressDialog(this);
-        dialog.setTitle("Uploading Question Paper");
+        dialog.setTitle("Getting All Subject");
         dialog.setMessage("Please wait...");
         dialog.setCancelable(false);
         categoriesList = new ArrayList<>();
@@ -100,19 +102,7 @@ public class EditSubject extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 subCategoryName = binding.subcategoryName.getText().toString();
                 studyCategoryName = binding.studyCategory.getText().toString();
-                if (studyCategoryName.equals("Mock Subjectwise") ||studyCategoryName.equals("Subject Notes") ||studyCategoryName.equals("Course Books")){
-                    getSubjectList();
-                }else{
-//                    getQuestionPaperList(categoryName, subCategoryName, studyCategoryName);
-                }
-            }
-        });
 
-        binding.subject.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                subjectName = binding.subject.getText().toString();
-//                getSubjectQuestionPaperList();
             }
         });
         
@@ -120,7 +110,12 @@ public class EditSubject extends AppCompatActivity {
         binding.getSubject.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(EditSubject.this, "all right", Toast.LENGTH_SHORT).show();
+                dialog.show();
+                if (studyCategoryName.equals("Mock Subjectwise") ||studyCategoryName.equals("Subject Notes") ||studyCategoryName.equals("Course Books")){
+                    getSubjectList();
+                }else{
+                          dialog.dismiss();
+                }
             }
         });
 
@@ -247,18 +242,24 @@ public class EditSubject extends AppCompatActivity {
                                         .collection("subCategories").document(subId)
                                         .collection(studyCategoryName).get()
                                         .addOnSuccessListener(subjectSnapshots -> {
-                                            List<String> subjectList = new ArrayList<>();
+                                            ArrayList<Subject> subjectList = new ArrayList<>();
                                             for (DocumentSnapshot snapshot : subjectSnapshots.getDocuments()) {
                                                 Subject subject = snapshot.toObject(Subject.class);
                                                 if (subject != null) {
-                                                    subjectList.add(subject.getSubjectName());
+                                                    subjectList.add(subject);
                                                 }
                                             }
+
+
 
                                             if (subjectList.isEmpty()) {
                                                 showToast("No subjects found");
                                             } else {
-                                                updateSubjectSpinner(subjectList);
+                                                adapter = new EditSubjectAdapter(EditSubject.this,subjectList, catId, subId,studyCategoryName);
+                                                binding.recyclerView.setLayoutManager(new LinearLayoutManager(EditSubject.this));
+                                                binding.recyclerView.setAdapter(adapter);
+                                                adapter.notifyDataSetChanged();
+                                                dialog.dismiss();
                                             }
 
                                             dialog.dismiss();
@@ -283,12 +284,7 @@ public class EditSubject extends AppCompatActivity {
         Toast.makeText(EditSubject.this, message, Toast.LENGTH_SHORT).show();
     }
 
-    private void updateSubjectSpinner(List<String> subjects) {
-        String[] subjectArray = subjects.toArray(new String[0]);
-        ArrayAdapter<String> classAdapter = new ArrayAdapter<>(getApplicationContext(),
-                android.R.layout.simple_dropdown_item_1line, subjectArray);
-        binding.subject.setAdapter(classAdapter);
-    }
+
 
 
 }

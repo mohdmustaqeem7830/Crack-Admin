@@ -106,37 +106,6 @@
 
 
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/selecter4"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="32dp"
-        android:background="@drawable/backgroundselector"
-        android:textColor="@color/black"
-        app:helperTextTextColor="@color/white"
-        app:hintTextColor="@color/black"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/selecter3">
-
-        <AutoCompleteTextView
-            android:id="@+id/subject"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/backgroundselector"
-            android:hint="Choose subject"
-            android:inputType="number"
-            android:paddingHorizontal="10dp"
-            android:popupTheme="@color/white"
-            android:textColor="@color/black"
-            android:textColorHint="@color/black" />
-    </com.google.android.material.textfield.TextInputLayout>
-
 
 
     <Button
@@ -151,7 +120,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/selecter4" />
+        app:layout_constraintTop_toBottomOf="@+id/selecter3" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
@@ -164,7 +133,7 @@
         app:layout_constraintHorizontal_bias="0.5"
         android:layout_marginBottom="20dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/getQuestionPaper" />
+        app:layout_constraintTop_toBottomOf="@+id/getSubject" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
