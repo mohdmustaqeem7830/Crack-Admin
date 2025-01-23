@@ -59,6 +59,7 @@ public class addQuestionPaper extends AppCompatActivity {
     FirebaseFirestore database;
 
     String downloadUrlLink;
+    String edit;
 
     String plan;
     
@@ -102,12 +103,13 @@ public class addQuestionPaper extends AppCompatActivity {
 
 
         subject = getIntent().getStringExtra("subject");
+        edit = getIntent().getStringExtra("edit");
         if (subject!=null){
 
             //logic code for subject addition
             binding.questionSubTitile.setVisibility(View.GONE);
-            binding.status.setVisibility(View.GONE);
-            binding.plan.setVisibility(View.GONE);
+            binding.statusinput.setVisibility(View.GONE);
+            binding.planinput.setVisibility(View.GONE);
             binding.addQPBtn.setVisibility(View.GONE);
             binding.addSubject.setVisibility(View.VISIBLE);
             binding.totalQuestion.setVisibility(View.GONE);
@@ -120,13 +122,13 @@ public class addQuestionPaper extends AppCompatActivity {
             dialog.setCancelable(false);
             getStudyCategoryforsubject();
         }else{
-
             // logic code for addition Question Paper
             dialog.setTitle("Uploading Question Paper");
             dialog.setMessage("Please wait...");
             dialog.setCancelable(false);
             getStudyCategory();
         }
+        
 
 
         getStatusList();
@@ -149,6 +151,14 @@ public class addQuestionPaper extends AppCompatActivity {
             }
 
         }
+
+        if (subject!=null && edit!=null){
+            catId = getIntent().getStringExtra("catId");
+            subId = getIntent().getStringExtra("subId");
+            studyCategoryName = getIntent().getStringExtra("studyCategoryName");
+            setSubjectDetail();
+        }
+
 
 
 
@@ -261,10 +271,74 @@ public class addQuestionPaper extends AppCompatActivity {
             }
         });
 
+        binding.editSubject.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.setTitle("Updating Question Paper");
+                dialog.setCancelable(false);
+                dialog.setMessage("Please wait ...");
+                dialog.show();
+                if (imageUri!=null){
+                    subjectImageUpdate();
+                }else{
+                    UpdateSubjectEdit(downloadUrlLink);
+                }
+            }
+        });
+
 
 
 
     }
+
+    private void subjectImageUpdate() {
+        if (downloadUrlLink != null && !downloadUrlLink.isEmpty()) {
+            StorageReference oldImageRef = FirebaseStorage.getInstance().getReferenceFromUrl(downloadUrlLink);
+
+            // Delete the existing image
+            oldImageRef.delete().addOnSuccessListener(unused -> {
+                // Upload the new image
+                uploadNewSubjectImage();
+            }).addOnFailureListener(e -> {
+                dialog.dismiss();
+                Toast.makeText(addQuestionPaper.this, "Failed to delete existing image", Toast.LENGTH_SHORT).show();
+            });
+        } else {
+            uploadNewSubjectImage();
+        }
+    }
+
+    private void uploadNewSubjectImage() {
+
+        StorageReference storageRef;
+
+
+            storageRef = storage.getReference().child("subject_images/" + subject+" "+System.currentTimeMillis() + ".jpg");
+            storageRef.putFile(imageUri)
+                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        storageRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                            @Override
+                            public void onSuccess(Uri downloadUri) {
+
+                                if (subjectEdit!=null){
+                                    UpdateSubjectEdit(downloadUri.toString());
+                                }else{
+                                    UpdateSubjectEdit(downloadUri.toString());
+                                }
+                            }
+                        });
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(addQuestionPaper.this, "Failed to upload image", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
 
     private void imageDeleteAndUpdate() {
         // Reference to the existing image in Firebase Storage
@@ -999,4 +1073,89 @@ public class addQuestionPaper extends AppCompatActivity {
 
         return updatedFields;
     }
+
+
+    private void setSubjectDetail() {
+        dialog.setTitle("Fetching detail");
+        dialog.setCancelable(false);
+        dialog.setMessage("Please wait ......");
+        dialog.show();
+                // Get the Firestore reference to the document
+        database.collection("categories").document(catId).collection("subCategories").document(subId)
+                .collection(studyCategoryName).whereEqualTo("subjectName", subject).get()
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        // Check if the document exists
+                        if (!queryDocumentSnapshots.isEmpty()) {
+                            // Loop through the documents (in case there are multiple matches)
+                            for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
+                                // Get the document ID
+                                 subjectId = document.getId();
+
+                                // Delete the document from Firestore
+                                database.collection("categories").document(catId)
+                                        .collection("subCategories").document(subId)
+                                        .collection(studyCategoryName).document(subjectId).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                                            @Override
+                                            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                                              Subject subject = documentSnapshot.toObject(Subject.class);
+
+                                                if (subject.getSubjectImage()!=null){
+                                                    Glide.with(addQuestionPaper.this)
+                                                            .load(subject.getSubjectImage())
+                                                            .into(binding.image);
+
+                                                    downloadUrlLink = subject.getSubjectImage();
+                                                }
+                                                binding.selecter1.setVisibility(View.GONE);
+                                                binding.selecter2.setVisibility(View.GONE);
+                                                binding.selecter3.setVisibility(View.GONE);
+                                                binding.qpname.setText(subject.getSubjectName());
+                                                binding.addSubject.setVisibility(View.GONE);
+                                                binding.editSubject.setVisibility(View.VISIBLE);
+                                                dialog.dismiss();
+                                            }
+                                        });
+                            }
+                        } else {
+                            dialog.dismiss();
+                            Toast.makeText(addQuestionPaper.this, "No document found with the given subject name.", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    dialog.dismiss();
+                    Toast.makeText(addQuestionPaper.this, "Failed to fetch document: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+    private void UpdateSubjectEdit(String downloadUrl) {
+        // Create a map to store the updated data
+        Map<String, Object> model = new HashMap<>();
+        model.put("subjectName", binding.qpname.getText().toString().trim()); // Ensure the name is trimmed
+        model.put("subjectImage", downloadUrl);
+
+        // Update the document in Firestore
+        database.collection("categories").document(catId)
+                .collection("subCategories").document(subId)
+                .collection(studyCategoryName).document(subjectId)
+                .update(model)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        dialog.dismiss();
+                        Toast.makeText(addQuestionPaper.this, "Subject updated successfully!", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        // Show an error message if the update fails
+                        Toast.makeText(addQuestionPaper.this, "Failed to update subject: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+
+
 }

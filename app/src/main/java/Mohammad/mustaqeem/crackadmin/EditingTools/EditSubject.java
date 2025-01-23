@@ -255,7 +255,7 @@ public class EditSubject extends AppCompatActivity {
                                             if (subjectList.isEmpty()) {
                                                 showToast("No subjects found");
                                             } else {
-                                                adapter = new EditSubjectAdapter(EditSubject.this,subjectList, catId, subId,studyCategoryName);
+                                                adapter = new EditSubjectAdapter(EditSubject.this,subjectList, catId, subId,studyCategoryName,categoryName,subCategoryName);
                                                 binding.recyclerView.setLayoutManager(new LinearLayoutManager(EditSubject.this));
                                                 binding.recyclerView.setAdapter(adapter);
                                                 adapter.notifyDataSetChanged();

@@ -21,8 +21,6 @@ import com.google.firebase.storage.StorageReference;
 import java.util.ArrayList;
 
 import Mohammad.mustaqeem.crackadmin.Activites.addQuestionPaper;
-import Mohammad.mustaqeem.crackadmin.Model.AddQuestionPaperModel;
-import Mohammad.mustaqeem.crackadmin.Model.Question;
 import Mohammad.mustaqeem.crackadmin.Model.Subject;
 import Mohammad.mustaqeem.crackadmin.databinding.QuestionListItemsBinding;
 
@@ -32,27 +30,25 @@ public class EditSubjectAdapter  extends  RecyclerView.Adapter<EditSubjectAdapte
     Context context;
 
     ArrayList<Subject> subjectArrayList;
-    String catId,subId,studyCategoryName,subjectId,subjectName;
+    String catId,subId,studyCategoryName,categoryName,subCategoryName;
 
     FirebaseFirestore database;
 
     ProgressDialog dialog;
 
-    public EditSubjectAdapter(Context context, ArrayList<Subject> subjectArrayList, String categoryName, String subCategoryName, String studyCategoryName){
+    public EditSubjectAdapter(Context context, ArrayList<Subject> subjectArrayList, String catId, String subId, String studyCategoryName,String categoryName,String subCategoryName){
         this.context = context;
         this.subjectArrayList = subjectArrayList;
-        this.catId = categoryName;
-        this.subId = subCategoryName;
+        this.catId = catId;
+        this.subId = subId;
+        this.categoryName = categoryName;
+        this.subCategoryName = subCategoryName;
         this.studyCategoryName = studyCategoryName;
         this.database = FirebaseFirestore.getInstance();
         this.dialog = new ProgressDialog(context);
         dialog.setMessage("Please wait");
         dialog.setTitle("Deleting Question");
         dialog.setCancelable(false);
-
-
-
-
     }
 
     public SubjectViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -89,7 +85,15 @@ public class EditSubjectAdapter  extends  RecyclerView.Adapter<EditSubjectAdapte
         holder.binding.editBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(context, subject.getSubjectImage(), Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(context, addQuestionPaper.class);
+                intent.putExtra("catId",catId);
+                intent.putExtra("categoryName",categoryName);
+                intent.putExtra("subCategoryName",subCategoryName);
+                intent.putExtra("subId",subId);
+                intent.putExtra("studyCategoryName",studyCategoryName);
+                intent.putExtra("subject",subject.getSubjectName());
+                intent.putExtra("edit","edit");
+                context.startActivity(intent);
             }
         });
     }
