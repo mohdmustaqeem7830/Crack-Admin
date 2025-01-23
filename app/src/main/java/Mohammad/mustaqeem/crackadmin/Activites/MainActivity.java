@@ -13,6 +13,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import Mohammad.mustaqeem.crackadmin.EditingTools.EditQuestion;
 import Mohammad.mustaqeem.crackadmin.EditingTools.EditQuestionPaper;
+import Mohammad.mustaqeem.crackadmin.EditingTools.EditSubject;
 import Mohammad.mustaqeem.crackadmin.R;
 import Mohammad.mustaqeem.crackadmin.databinding.ActivityMainBinding;
 
@@ -86,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
         binding.editSubject.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, EditQuestionPaper.class);
+                Intent intent = new Intent(MainActivity.this, EditSubject.class);
                 intent.putExtra("subject","subject");
                 startActivity(intent);
             }
