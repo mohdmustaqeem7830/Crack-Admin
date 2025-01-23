@@ -127,7 +127,9 @@ public class addQuestionPaper extends AppCompatActivity {
         }
 
 
-
+        getStatusList();
+        getPlanList();
+        getCategoryList();
         //logic code for editing the question paper
         qpId = getIntent().getStringExtra("qpId");
         categoryName = getIntent().getStringExtra("categoryName");
@@ -144,11 +146,9 @@ public class addQuestionPaper extends AppCompatActivity {
                 EditQuestionPaperFilling();
             }
 
-        }else{
-            getStatusList();
-            getPlanList();
-            getCategoryList();
         }
+
+
 
 
         binding.selectBtn.setOnClickListener(new View.OnClickListener() {
@@ -225,15 +225,20 @@ public class addQuestionPaper extends AppCompatActivity {
         binding.updateQP.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                dialog.setTitle("Updating Question Paper");
+                dialog.setCancelable(false);
+                dialog.setMessage("Please wait ...");
+                dialog.show();
                 if (imageUri!=null){
+                        imageDeleteAndUpdate();
+                }else{
+                    if (subjectEdit!=null){
+                        updateSubjectQuestionPaper(downloadUrlLink);
+                    }else{
+                        updateQuestionPaper(downloadUrlLink);
+                    }
 
                 }
-//                if (subjectEdit!=null){
-//                    UpdateSubjectQP();
-//                }else{
-//                    UpdateQp();
-//                }
             }
         });
 
@@ -257,6 +262,63 @@ public class addQuestionPaper extends AppCompatActivity {
 
 
 
+    }
+
+    private void imageDeleteAndUpdate() {
+        // Reference to the existing image in Firebase Storage
+        if (downloadUrlLink != null && !downloadUrlLink.isEmpty()) {
+            StorageReference oldImageRef = FirebaseStorage.getInstance().getReferenceFromUrl(downloadUrlLink);
+
+            // Delete the existing image
+            oldImageRef.delete().addOnSuccessListener(unused -> {
+                // Upload the new image
+                uploadNewImage();
+            }).addOnFailureListener(e -> {
+                dialog.dismiss();
+                Toast.makeText(addQuestionPaper.this, "Failed to delete existing image", Toast.LENGTH_SHORT).show();
+            });
+        } else {
+            // If there's no existing image, directly upload the new one
+            uploadNewImage();
+        }
+    }
+
+    private void uploadNewImage() {
+        StorageReference storageRef;
+
+
+            if (subjectEdit!=null){
+                storageRef = storage.getReference().child("Subject_Question_Paper/" + System.currentTimeMillis() + ".jpg");
+
+            }else{
+                storageRef = storage.getReference().child("Question_Paper_images/" + System.currentTimeMillis() + ".jpg");
+            }
+
+        storageRef.putFile(imageUri)
+                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        storageRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                            @Override
+                            public void onSuccess(Uri downloadUri) {
+
+                                    if (subjectEdit!=null){
+                                        Toast.makeText(addQuestionPaper.this, "Update ho gya Subject wala image", Toast.LENGTH_SHORT).show();
+                                        updateSubjectQuestionPaper(downloadUri.toString());
+                                    }else{
+                                        Toast.makeText(addQuestionPaper.this, "Update ho gya image", Toast.LENGTH_SHORT).show();
+                                        updateQuestionPaper(downloadUri.toString());
+                                }
+                            }
+                        });
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(addQuestionPaper.this, "Failed to upload image", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
 
@@ -849,17 +911,25 @@ public class addQuestionPaper extends AppCompatActivity {
     }
 
     private void setQuestionInfo(AddQuestionPaperModel addQuestionPaperModel) {
-        binding.status.setText(addQuestionPaperModel.getStatus());
-        binding.plan.setText(addQuestionPaperModel.getPlan());
+        status = addQuestionPaperModel.getStatus();
+        binding.status.setText(status);
+        plan = addQuestionPaperModel.getPlan();
+        binding.plan.setText(plan);
         binding.categoryName.setText(categoryName);
         binding.subcategoryName.setText(subCategoryName);
         binding.studyCategory.setText(studyCategoryName);
-        binding.qpname.setText(addQuestionPaperModel.getQpName());
-        binding.qpsubTitle.setText(addQuestionPaperModel.getQpSubTitle());
-        binding.time.setText(addQuestionPaperModel.getTime());
-        binding.totalQuestion.setText(addQuestionPaperModel.getTotalQuestion());
-        binding.correct.setText(addQuestionPaperModel.getCorrectMarks());
-        binding.negative.setText(addQuestionPaperModel.getNegativeMarks());
+        qpname = addQuestionPaperModel.getQpName();
+        binding.qpname.setText(qpname);
+        qpsubTitle = addQuestionPaperModel.getQpSubTitle();
+        binding.qpsubTitle.setText(qpsubTitle);
+        time = addQuestionPaperModel.getTime();
+        binding.time.setText(time);
+        totalQuestion = addQuestionPaperModel.getTotalQuestion();
+        binding.totalQuestion.setText(totalQuestion);
+        negativeMarks = addQuestionPaperModel.getNegativeMarks();
+        binding.correct.setText(negativeMarks);
+        correctMarks = addQuestionPaperModel.getCorrectMarks();
+        binding.negative.setText(correctMarks);
     }
 
     private void handleError(String message) {
@@ -867,7 +937,64 @@ public class addQuestionPaper extends AppCompatActivity {
         Toast.makeText(addQuestionPaper.this, message, Toast.LENGTH_SHORT).show();
     }
 
-    private void UpdateQp() {
+    private void updateSubjectQuestionPaper(String downloadUri) {
 
+        Map<String,Object> model = updatedField(downloadUri);
+
+        database.collection("categories").document(catId).collection("subCategories").document(subId)
+                .collection(studyCategoryName).document(subjectId).collection("subject_question_paper").document(qpId)
+                .update(model)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            dialog.dismiss();
+                            Toast.makeText(addQuestionPaper.this, "Question Paper Updated", Toast.LENGTH_SHORT).show();
+                        } else {
+                            dialog.dismiss();
+                            Toast.makeText(addQuestionPaper.this, "Failed to Update Question Paper", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+    }
+
+    private void updateQuestionPaper(String downloadUri) {
+        Map<String,Object> model = updatedField(downloadUri);
+
+        database.collection("categories").document(catId).collection("subCategories").document(subId)
+                .collection(studyCategoryName).document(qpId)
+                .update(model)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            dialog.dismiss();
+                            Toast.makeText(addQuestionPaper.this, "Question Paper Updated", Toast.LENGTH_SHORT).show();
+                        } else {
+                            dialog.dismiss();
+                            Toast.makeText(addQuestionPaper.this, "Failed to Update Question Paper", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+    }
+
+
+    public Map<String,Object> updatedField(String downloadUri){
+
+        Map<String, Object> updatedFields = new HashMap<>();
+        updatedFields.put("qpImage", downloadUri.toString());
+        updatedFields.put("qpName", binding.qpname.getText().toString());
+        updatedFields.put("qpSubTitle",binding.qpsubTitle.getText().toString());
+        updatedFields.put("categoryName", binding.categoryName.getText().toString());
+        updatedFields.put("subCategoryName", binding.subcategoryName.getText().toString());
+        updatedFields.put("studyCategoryName", binding.studyCategory.getText().toString());
+        updatedFields.put("time", binding.time.getText().toString());
+        updatedFields.put("correctMarks", binding.correct.getText().toString());
+        updatedFields.put("negativeMarks", binding.negative.getText().toString());
+        updatedFields.put("totalQuestion", binding.totalQuestion.getText().toString());
+        updatedFields.put("status", binding.status.getText().toString());
+        updatedFields.put("plan", binding.plan.getText().toString());
+
+        return updatedFields;
     }
 }
