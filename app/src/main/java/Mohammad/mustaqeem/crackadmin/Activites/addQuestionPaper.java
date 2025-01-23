@@ -262,7 +262,7 @@ public class addQuestionPaper extends AppCompatActivity {
                 studyCategoryName = binding.studyCategory.getText().toString();
                 status = binding.status.getText().toString();
                 qpname =binding.qpname.getText().toString();
-                if (imageUri==null || categoryName.isEmpty() || subCategoryName.isEmpty() || studyCategoryName.isEmpty()  || status.isEmpty()){
+                if (imageUri==null || categoryName.isEmpty() || subCategoryName.isEmpty() || studyCategoryName.isEmpty()){
                     Toast.makeText(addQuestionPaper.this, "Please fill all the field", Toast.LENGTH_SHORT).show();
                 }else{
                     dialog.show();

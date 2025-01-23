@@ -64,6 +64,36 @@
                     android:layout_marginTop="10dp"
                     android:fontFamily="@font/roboto_medium"
                     android:text="set 1" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="3dp"
+                    >
+
+                    <Button
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Edit"
+                        android:layout_weight="1"
+                        android:id="@+id/editbtn"
+                        android:backgroundTint="@color/black"
+                        android:textColor="@color/white"
+                        android:layout_marginHorizontal="3dp"
+                        />
+
+                    <Button
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Delete"
+                        android:layout_weight="1"
+                        android:id="@+id/deleteBtn"
+                        android:backgroundTint="@color/black"
+                        android:textColor="@color/white"
+                        android:layout_marginHorizontal="3dp"
+                        />
+
+                </LinearLayout>
             </LinearLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>

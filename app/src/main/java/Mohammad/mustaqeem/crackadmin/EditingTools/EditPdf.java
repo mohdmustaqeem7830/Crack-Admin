@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -22,20 +23,17 @@ import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QuerySnapshot;
-
 import java.util.ArrayList;
 import java.util.List;
 
-import Mohammad.mustaqeem.crackadmin.Adapters.EditQuestionPaperAdapter;
+import Mohammad.mustaqeem.crackadmin.Adapters.EditPDFAdapter;
 import Mohammad.mustaqeem.crackadmin.Model.AddCategoryModel;
 import Mohammad.mustaqeem.crackadmin.Model.AddPDFModel;
-import Mohammad.mustaqeem.crackadmin.Model.AddQuestionPaperModel;
 import Mohammad.mustaqeem.crackadmin.Model.AddSubCategoryModel;
-import Mohammad.mustaqeem.crackadmin.Model.Question;
 import Mohammad.mustaqeem.crackadmin.Model.Subject;
 import Mohammad.mustaqeem.crackadmin.R;
 import Mohammad.mustaqeem.crackadmin.databinding.ActivityEditPdfBinding;
-import Mohammad.mustaqeem.crackadmin.databinding.ActivityEditQuestionPaperBinding;
+
 
 public class EditPdf extends AppCompatActivity {
 
@@ -45,7 +43,7 @@ public class EditPdf extends AppCompatActivity {
     FirebaseFirestore database;
     String[] qpArray;
 
-    EditQuestionPaperAdapter adapter;
+    EditPDFAdapter adapter;
 
     String[] typeArray;
 
@@ -60,6 +58,7 @@ public class EditPdf extends AppCompatActivity {
     ActivityEditPdfBinding binding;
     ProgressDialog dialog;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -73,7 +72,7 @@ public class EditPdf extends AppCompatActivity {
             return insets;
         });
 
-
+        pdfModelArrayList = new ArrayList<>();
         database = FirebaseFirestore.getInstance();
 
         dialog = new ProgressDialog(this);
@@ -125,10 +124,15 @@ public class EditPdf extends AppCompatActivity {
         binding.getPDF.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                if (studyCategoryName.equals("Subject Notes") || studyCategoryName.equals("Course Books")){
+                    getSubjectPDFList();
+                }else{
+                    getPDFList();
+                }
             }
         });
     }
+
 
 
     public void getCategoryList() {
@@ -281,5 +285,128 @@ public class EditPdf extends AppCompatActivity {
                 android.R.layout.simple_dropdown_item_1line, subjectArray);
         binding.subject.setAdapter(classAdapter);
     }
+
+
+    private void getSubjectPDFList() {
+        // Clear the list to avoid duplicates
+        pdfModelArrayList.clear();
+
+        // Query Firestore for documents with the matching subject name
+        database.collection("categories").document(catId)
+                .collection("subCategories").document(subId)
+                .collection(studyCategoryName).whereEqualTo("subjectName", subjectName)
+                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        if (!queryDocumentSnapshots.isEmpty()) {
+                            // Get the subject ID of the first matching document
+                            subjectId = queryDocumentSnapshots.getDocuments().get(0).getId();
+
+                            // Access the collection for the specific subject
+                            database.collection("categories").document(catId)
+                                    .collection("subCategories").document(subId)
+                                    .collection(studyCategoryName).document(subjectId)
+                                    .collection(subjectName)
+                                    .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                                        @Override
+                                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                                            if (!queryDocumentSnapshots.isEmpty()) {
+                                                // Iterate through each document and add to the list
+                                                for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
+                                                    AddPDFModel pdfModel = document.toObject(AddPDFModel.class);
+                                                    pdfModelArrayList.add(pdfModel);
+                                                }
+
+                                                adapter = new EditPDFAdapter(EditPdf.this,pdfModelArrayList,catId,subId,categoryName,subCategoryName,studyCategoryName,subjectId,subjectName);
+                                                binding.recyclerView.setLayoutManager(new LinearLayoutManager(EditPdf.this));
+                                                binding.recyclerView.setAdapter(adapter);
+                                                adapter.notifyDataSetChanged();
+                                                dialog.dismiss();
+                                            } else {
+                                                Toast.makeText(EditPdf.this, "No PDF Found", Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+                                    }).addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Toast.makeText(EditPdf.this, "Failed to load PDFs: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                        } else {
+                            Toast.makeText(EditPdf.this, "No Subject Found", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(EditPdf.this, "Failed to load subject: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+
+
+
+    public void getPDFList() {
+        // Clear the list to avoid duplicates
+        pdfModelArrayList.clear();
+
+        // Query Firestore to retrieve all documents under the specified collection
+        database.collection("categories").document(catId)
+                .collection("subCategories").whereEqualTo("subCategoryName",subCategoryName).get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        if (!queryDocumentSnapshots.isEmpty()){
+                            subId = queryDocumentSnapshots.getDocuments().get(0).getId();
+                            database.collection("categories").document(catId)
+                                    .collection("subCategories").document(subId)
+                                    .collection(studyCategoryName).get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                                        @Override
+                                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                                            if (!queryDocumentSnapshots.isEmpty()) {
+                                                // Iterate through each document and map it to the AddPDFModel class
+                                                for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
+                                                    AddPDFModel pdfModel = document.toObject(AddPDFModel.class);
+                                                    if (pdfModel != null) {
+                                                        pdfModelArrayList.add(pdfModel);
+                                                    }
+                                                }
+
+                                                // Show the size of the list as a Toast for debugging
+                                                Toast.makeText(EditPdf.this, "PDFs Found: " + pdfModelArrayList.size(), Toast.LENGTH_SHORT).show();
+
+                                                // Set up the RecyclerView with the adapter
+                                                adapter = new EditPDFAdapter(
+                                                        EditPdf.this,
+                                                        pdfModelArrayList,
+                                                        catId,
+                                                        subId,
+                                                        categoryName,
+                                                        subCategoryName,
+                                                        studyCategoryName,
+                                                        null,null
+                                                );
+                                                binding.recyclerView.setLayoutManager(new LinearLayoutManager(EditPdf.this));
+                                                binding.recyclerView.setAdapter(adapter);
+                                                adapter.notifyDataSetChanged(); // Notify adapter to refresh the data
+
+                                                // Dismiss the dialog if applicable
+                                                dialog.dismiss();
+                                            } else {
+                                                // Display a message if no documents are found
+                                                Toast.makeText(EditPdf.this, "No PDFs Found", Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+                                    }).addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Toast.makeText(EditPdf.this, "No Sub Category Found", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                        }
+                    }
+                });
+    }
+
 
 }
