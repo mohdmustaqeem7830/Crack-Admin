@@ -316,14 +316,14 @@
                             android:textColor="@color/black"/>
 
                         <Button
-                            android:id="@+id/deleteSubjectNotes"
+                            android:id="@+id/editSubjectNotes"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_margin="8dp"
                             android:layout_columnSpan="1"
                             android:layout_columnWeight="1"
                            android:background="@drawable/backgroundselector"
-                            android:text="Delete Subject Notes"
+                            android:text="Edit Subject Notes"
                             android:textColor="@color/black"/>
 
                     </GridLayout>
@@ -374,14 +374,14 @@
                             android:textColor="@color/black"/>
 
                         <Button
-                            android:id="@+id/deleteBook"
+                            android:id="@+id/editBook"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_margin="8dp"
                             android:layout_columnSpan="1"
                             android:layout_columnWeight="1"
                             android:background="@drawable/backgroundselector"
-                            android:text="Add Book"
+                            android:text="Edit Book"
                             android:textColor="@color/black"/>
 
                     </GridLayout>
@@ -431,14 +431,14 @@
                             android:textColor="@color/black"/>
 
                         <Button
-                            android:id="@+id/deletePyqPDF"
+                            android:id="@+id/editPyqPDF"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_margin="8dp"
                             android:layout_columnSpan="1"
                             android:layout_columnWeight="1"
                             android:background="@drawable/backgroundselector"
-                            android:text="Delete PYQ PDF"
+                            android:text="Edit PYQ PDF"
                             android:textColor="@color/black"/>
 
                     </GridLayout>
@@ -489,14 +489,14 @@
                             android:textColor="@color/black"/>
 
                         <Button
-                            android:id="@+id/deleteAnswerKey"
+                            android:id="@+id/editAnswerKey"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_margin="8dp"
                             android:layout_columnSpan="1"
                             android:layout_columnWeight="1"
                             android:background="@drawable/backgroundselector"
-                            android:text="Delete Answerkey"
+                            android:text="Edit Answerkey"
                             android:textColor="@color/black"/>
 
                     </GridLayout>

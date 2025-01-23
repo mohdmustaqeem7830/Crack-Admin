@@ -11,6 +11,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import Mohammad.mustaqeem.crackadmin.EditingTools.EditPdf;
 import Mohammad.mustaqeem.crackadmin.EditingTools.EditQuestion;
 import Mohammad.mustaqeem.crackadmin.EditingTools.EditQuestionPaper;
 import Mohammad.mustaqeem.crackadmin.EditingTools.EditSubject;
@@ -118,11 +119,29 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        binding.editPyqPDF.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, EditPdf.class);
+                intent.putExtra("studyCategoryName","PYQ PDF");
+                startActivity(intent);
+            }
+        });
+
 
         binding.addAnswerKey.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, AddPDF.class);
+                intent.putExtra("studyCategoryName","Exam Answerkey");
+                startActivity(intent);
+            }
+        });
+
+        binding.editAnswerKey.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, EditPdf.class);
                 intent.putExtra("studyCategoryName","Exam Answerkey");
                 startActivity(intent);
             }
@@ -137,10 +156,28 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        binding.editBook.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, EditPdf.class);
+                intent.putExtra("studyCategoryName","Course Books");
+                startActivity(intent);
+            }
+        });
+
         binding.addNotes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, AddPDF.class);
+                intent.putExtra("studyCategoryName","Subject Notes");
+                startActivity(intent);
+            }
+        });
+
+        binding.editSubjectNotes.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, EditPdf.class);
                 intent.putExtra("studyCategoryName","Subject Notes");
                 startActivity(intent);
             }
