@@ -17,6 +17,9 @@
         android:theme="@style/Theme.CrackAdmin"
         tools:targetApi="31">
         <activity
+            android:name=".Activites.Banner"
+            android:exported="false" />
+        <activity
             android:name=".EditingTools.EditPdf"
             android:exported="false" />
         <activity

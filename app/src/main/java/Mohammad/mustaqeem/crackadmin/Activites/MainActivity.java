@@ -186,7 +186,8 @@ public class MainActivity extends AppCompatActivity {
         binding.addBanner.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Intent intent = new Intent(MainActivity.this, Banner.class);
+                startActivity(intent);
             }
         });
 
@@ -198,6 +199,8 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this, AddQuestion.class));
             }
         });
+
+
 
 
 //        binding.deleteCatBtn.setOnClickListener(new View.OnClickListener() {
