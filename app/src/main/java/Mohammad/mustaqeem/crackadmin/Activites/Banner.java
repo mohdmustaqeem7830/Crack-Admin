@@ -19,6 +19,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -37,6 +38,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import Mohammad.mustaqeem.crackadmin.Adapters.BannerAdapter;
+import Mohammad.mustaqeem.crackadmin.Adapters.EditQuestionPaperAdapter;
+import Mohammad.mustaqeem.crackadmin.EditingTools.EditQuestionPaper;
 import Mohammad.mustaqeem.crackadmin.Model.AddCategoryModel;
 import Mohammad.mustaqeem.crackadmin.Model.AddSubCategoryModel;
 import Mohammad.mustaqeem.crackadmin.Model.BannerModel;
@@ -92,6 +96,25 @@ public class Banner extends AppCompatActivity {
         categoryName = getIntent().getStringExtra("categoryName");
         subCategoryName = getIntent().getStringExtra("subCategoryName");
 
+        if (!edit.isEmpty()){
+            binding.image.setVisibility(View.GONE);
+            binding.addBanner.setVisibility(View.GONE);
+            binding.updateBanner.setVisibility(View.VISIBLE);
+            binding.selectBtn.setVisibility(View.GONE);
+        }
+
+        binding.updateBanner.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                dialog.setTitle("Fetching Banner Image");
+                dialog.setCancelable(false);
+                dialog.setMessage("Please Wait");
+                dialog.show();
+                getListBanner();
+            }
+        });
+
         binding.selectBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -130,6 +153,8 @@ public class Banner extends AppCompatActivity {
 
 
     }
+
+
 
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -274,6 +299,55 @@ public class Banner extends AppCompatActivity {
                     @Override
                     public void onFailure(@NonNull Exception e) {
                         Toast.makeText(Banner.this, "Failed to fetch categories", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void getListBanner() {
+
+        database.collection("categories").document(catId).collection("subCategories")
+                .whereEqualTo("subCategoryName", subCategoryName).get()
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        if (!queryDocumentSnapshots.isEmpty()) {
+                            subId = queryDocumentSnapshots.getDocuments().get(0).getId();
+                            database.collection("categories").document(catId).collection("subCategories")
+                                    .document(subId).collection("Banner").get()
+                                    .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                                        @Override
+                                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                                            if (!queryDocumentSnapshots.isEmpty()) {
+                                                List<String> bannerlist = new ArrayList<>();
+                                                bannerlist.clear();
+                                                for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
+                                                    String bannerImageUrl = document.getString("bannerImageUrl");
+                                                    if (bannerImageUrl != null) {
+                                                               bannerlist.add(bannerImageUrl);
+                                                    }
+                                                }
+
+                                                BannerAdapter adapter = new BannerAdapter(Banner.this,bannerlist,catId,subId);
+                                                binding.recyclerView.setLayoutManager(new LinearLayoutManager(Banner.this));
+                                                binding.recyclerView.setAdapter(adapter);
+                                                adapter.notifyDataSetChanged();
+                                                dialog.dismiss();
+                                            }
+
+                                        }
+                                    }).addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Toast.makeText(Banner.this, "Failed to load banner", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                        }
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        // Handle failure for the 'subCategories' retrieval
+                        Toast.makeText(Banner.this, "Some error occured", Toast.LENGTH_SHORT).show();
                     }
                 });
     }

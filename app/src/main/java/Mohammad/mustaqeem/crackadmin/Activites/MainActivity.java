@@ -191,6 +191,16 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        binding.deleteBanner.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, Banner.class);
+                intent.putExtra("edit","edit");
+                startActivity(intent);
+
+            }
+        });
+
 
 
         binding.question.setOnClickListener(new View.OnClickListener() {
