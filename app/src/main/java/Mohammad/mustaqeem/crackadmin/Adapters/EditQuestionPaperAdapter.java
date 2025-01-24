@@ -11,6 +11,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
@@ -23,7 +24,9 @@ import Mohammad.mustaqeem.crackadmin.Activites.AddSubjectQuestion;
 import Mohammad.mustaqeem.crackadmin.Activites.addQuestionPaper;
 import Mohammad.mustaqeem.crackadmin.Model.AddQuestionPaperModel;
 import Mohammad.mustaqeem.crackadmin.Model.Question;
+import Mohammad.mustaqeem.crackadmin.R;
 import Mohammad.mustaqeem.crackadmin.databinding.QuestionListItemsBinding;
+import Mohammad.mustaqeem.crackadmin.databinding.QuestionPaperItemBinding;
 
 public class EditQuestionPaperAdapter extends RecyclerView.Adapter<EditQuestionPaperAdapter.QuestionPaperViewHolder> {
 
@@ -58,15 +61,19 @@ public class EditQuestionPaperAdapter extends RecyclerView.Adapter<EditQuestionP
     @NonNull
     @Override
     public QuestionPaperViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(Mohammad.mustaqeem.crackadmin.R.layout.question_list_items,parent,false);
+        View view = LayoutInflater.from(context).inflate(R.layout.question_paper_item,parent,false);
         return  new EditQuestionPaperAdapter.QuestionPaperViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull QuestionPaperViewHolder holder, int position) {
         AddQuestionPaperModel questionPaperModel = questionpaperArrayList.get(position);
-        holder.binding.qindex.setText(String.valueOf(position+1));
-        holder.binding.qname.setText(questionPaperModel.getQpName());
+        holder.binding.qpName.setText(questionPaperModel.getQpName());
+        holder.binding.qpSubTitile.setText(questionPaperModel.getQpSubTitle());
+        holder.binding.lockText.setText(questionPaperModel.getPlan());
+        holder.binding.lock.setVisibility(View.VISIBLE);
+        Glide.with(context).load(questionPaperModel.getQpImage()).into(holder.binding.qpImage);
+
 
         holder.binding.qDeleteBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -115,10 +122,10 @@ public class EditQuestionPaperAdapter extends RecyclerView.Adapter<EditQuestionP
 
     public class QuestionPaperViewHolder extends RecyclerView.ViewHolder {
 
-        QuestionListItemsBinding binding;
+        QuestionPaperItemBinding binding;
         public QuestionPaperViewHolder(@NonNull View itemView) {
             super(itemView);
-            binding = QuestionListItemsBinding.bind(itemView);
+            binding = QuestionPaperItemBinding.bind(itemView);
         }
     }
 
@@ -187,9 +194,6 @@ public class EditQuestionPaperAdapter extends RecyclerView.Adapter<EditQuestionP
                 });
     }
 
-
-
-    // Helper function to delete the question document
     private void deleteQuestionDocument(String catId, String subCatId, String studyCategoryName, String qID, int position) {
         database.collection("categories").document(catId)
                 .collection("subCategories").document(subCatId)
