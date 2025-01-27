@@ -92,16 +92,19 @@ public class Banner extends AppCompatActivity {
         subCategoriesList = new ArrayList<>();
 
         edit = getIntent().getStringExtra("edit");
-        getCategoryList();
+
         categoryName = getIntent().getStringExtra("categoryName");
         subCategoryName = getIntent().getStringExtra("subCategoryName");
-
-        if (!edit.isEmpty()){
+//
+    if (edit!=null){
             binding.image.setVisibility(View.GONE);
             binding.addBanner.setVisibility(View.GONE);
             binding.updateBanner.setVisibility(View.VISIBLE);
             binding.selectBtn.setVisibility(View.GONE);
         }
+
+
+        getCategoryList();
 
         binding.updateBanner.setOnClickListener(new View.OnClickListener() {
             @Override
