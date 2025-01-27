@@ -40,7 +40,9 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.yalantis.ucrop.UCrop;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -69,6 +71,9 @@ public class AddQuestion extends AppCompatActivity {
     String[] typeArray;
     FirebaseFirestore database;
     private FirebaseStorage storage;
+    int UCROP_REQUEST_CODE = 35;
+    int UCROP_SOLUTION_REQUEST_CODE = 45;
+
 
     String downloadUrlLink,solutiondownloadUrlLink;
 
@@ -392,31 +397,78 @@ public class AddQuestion extends AppCompatActivity {
 
     }
 
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
+        //for question image
+
         if (requestCode == SELECT_IMAGE_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
             imageUri = data.getData();
-            try {
-                InputStream imageStream = getContentResolver().openInputStream(imageUri);
-                Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
-                binding.image.setImageBitmap(selectedImage);
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (imageUri != null) {
+                startCrop(imageUri,UCROP_REQUEST_CODE);
             }
+        } else if (requestCode == UCROP_REQUEST_CODE && resultCode == RESULT_OK) {
+            final Uri resultUriquestion = UCrop.getOutput(data);
+            if (resultUriquestion != null) {
+                imageUri = resultUriquestion; // Update imageUri with cropped image
+                try {
+                    InputStream imageStream = getContentResolver().openInputStream(imageUri);
+                    Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
+                    binding.image.setImageBitmap(selectedImage);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        } else if (resultCode == UCrop.RESULT_ERROR) {
+            final Throwable cropError = UCrop.getError(data);
+            Toast.makeText(this, "Cropping failed: " + cropError.getMessage(), Toast.LENGTH_SHORT).show();
         }
+
+        //for solution image
 
         if (requestCode == SELECT_SOLUTION_IMAGE_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
             solutionImageUri = data.getData();
-            try {
-                InputStream imageStream = getContentResolver().openInputStream(solutionImageUri);
-                Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
-                binding.solutionImage.setImageBitmap(selectedImage);
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (solutionImageUri != null) {
+                startCrop(solutionImageUri,UCROP_SOLUTION_REQUEST_CODE);
             }
+        } else if (requestCode ==UCROP_SOLUTION_REQUEST_CODE  && resultCode == RESULT_OK) {
+            final Uri resultUri = UCrop.getOutput(data);
+            if (resultUri != null) {
+                solutionImageUri = resultUri; // Update imageUri with cropped image
+                try {
+                    InputStream imageStream = getContentResolver().openInputStream(solutionImageUri);
+                    Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
+                    binding.solutionImage.setImageBitmap(selectedImage);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        } else if (resultCode == UCrop.RESULT_ERROR) {
+            final Throwable cropError = UCrop.getError(data);
+            Toast.makeText(this, "Cropping failed: " + cropError.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
+    private void startCrop(@NonNull Uri uri,int code) {
+        String destinationFileName = "CroppedImage";
+        Uri destinationUri = Uri.fromFile(new File(getCacheDir(), destinationFileName));
+
+        UCrop.Options options = new UCrop.Options();
+        options.setCompressionFormat(Bitmap.CompressFormat.PNG);
+        options.setCompressionQuality(100);
+        options.setHideBottomControls(true);
+        options.setFreeStyleCropEnabled(true);
+
+        UCrop.of(uri, destinationUri)
+                .withAspectRatio(16, 9) // Adjust aspect ratio as needed
+                .withMaxResultSize(1080, 720) // Adjust size as needed
+                .withOptions(options)
+                .start(this, code);
+    }
+
+
+
 
     public void getCategoryList() {
         database.collection("categories")
