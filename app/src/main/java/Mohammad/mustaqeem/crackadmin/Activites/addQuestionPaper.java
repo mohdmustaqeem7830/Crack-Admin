@@ -35,7 +35,9 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.yalantis.ucrop.UCrop;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -62,6 +64,7 @@ public class addQuestionPaper extends AppCompatActivity {
     String edit;
 
     String plan;
+    int UCROP_REQUEST_CODE = 26;
     
     String categoryName,subCategoryName,studyCategoryName,qpname,qpsubTitle,subjectName,totalQuestion,status;
 
@@ -475,20 +478,33 @@ public class addQuestionPaper extends AppCompatActivity {
     }
 
 
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == SELECT_IMAGE_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
             imageUri = data.getData();
-            try {
-                InputStream imageStream = getContentResolver().openInputStream(imageUri);
-                Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
-                binding.image.setImageBitmap(selectedImage);
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (imageUri != null) {
+                startCrop(imageUri);
             }
+        } else if (requestCode == UCROP_REQUEST_CODE && resultCode == RESULT_OK) {
+            final Uri resultUri = UCrop.getOutput(data);
+            if (resultUri != null) {
+                imageUri = resultUri; // Update imageUri with cropped image
+                try {
+                    InputStream imageStream = getContentResolver().openInputStream(imageUri);
+                    Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
+                    binding.image.setImageBitmap(selectedImage);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        } else if (resultCode == UCrop.RESULT_ERROR) {
+            final Throwable cropError = UCrop.getError(data);
+            Toast.makeText(this, "Cropping failed: " + cropError.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
+
     private void uploadImage(Uri imageUri ) {
         StorageReference storageRef;
 
@@ -1156,6 +1172,22 @@ public class addQuestionPaper extends AppCompatActivity {
                 });
     }
 
+    private void startCrop(@NonNull Uri uri) {
+        String destinationFileName = "CroppedImage";
+        Uri destinationUri = Uri.fromFile(new File(getCacheDir(), destinationFileName));
+
+        UCrop.Options options = new UCrop.Options();
+        options.setCompressionFormat(Bitmap.CompressFormat.PNG);
+        options.setCompressionQuality(100);
+        options.setHideBottomControls(true);
+        options.setFreeStyleCropEnabled(true);
+
+        UCrop.of(uri, destinationUri)
+                .withAspectRatio(16, 9) // Adjust aspect ratio as needed
+                .withMaxResultSize(1080, 720) // Adjust size as needed
+                .withOptions(options)
+                .start(this, UCROP_REQUEST_CODE);
+    }
 
 
 }
