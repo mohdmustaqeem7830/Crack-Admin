@@ -31,7 +31,9 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.yalantis.ucrop.UCrop;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,6 +54,8 @@ public class Banner extends AppCompatActivity {
     String[] subCategoryArray;
 
     ActivityBannerBinding binding;
+
+    int UCROP_REQUEST_CODE = 26;
 
     FirebaseFirestore database;
 
@@ -159,20 +163,50 @@ public class Banner extends AppCompatActivity {
 
 
 
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == SELECT_IMAGE_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
             imageUri = data.getData();
-            try {
-                InputStream imageStream = getContentResolver().openInputStream(imageUri);
-                Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
-                binding.image.setImageBitmap(selectedImage);
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (imageUri != null) {
+                startCrop(imageUri);
             }
+        } else if (requestCode == UCROP_REQUEST_CODE && resultCode == RESULT_OK) {
+            final Uri resultUri = UCrop.getOutput(data);
+            if (resultUri != null) {
+                imageUri = resultUri; // Update imageUri with cropped image
+                try {
+                    InputStream imageStream = getContentResolver().openInputStream(imageUri);
+                    Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
+                    binding.image.setImageBitmap(selectedImage);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        } else if (resultCode == UCrop.RESULT_ERROR) {
+            final Throwable cropError = UCrop.getError(data);
+            Toast.makeText(this, "Cropping failed: " + cropError.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
+
+    private void startCrop(@NonNull Uri uri) {
+        String destinationFileName = "CroppedImage";
+        Uri destinationUri = Uri.fromFile(new File(getCacheDir(), destinationFileName));
+
+        UCrop.Options options = new UCrop.Options();
+        options.setCompressionFormat(Bitmap.CompressFormat.PNG);
+        options.setCompressionQuality(100);
+        options.setHideBottomControls(true);
+        options.setFreeStyleCropEnabled(true);
+
+        UCrop.of(uri, destinationUri)
+                .withAspectRatio(16, 9) // Adjust aspect ratio as needed
+                .withMaxResultSize(1080, 720) // Adjust size as needed
+                .withOptions(options)
+                .start(this, UCROP_REQUEST_CODE);
+    }
+
 
 
     public void upload(String categoryName, String subCategoryName, Uri imageUri) {
@@ -198,35 +232,35 @@ public class Banner extends AppCompatActivity {
     private void saveImageUrlToFirestore(String categoryName, String subCategoryName, String downloadUrl) {
 
         BannerModel model = new BannerModel(downloadUrl);
-           database.collection("categories").document(catId).collection("subCategories").whereEqualTo("subCategoryName",subCategoryName).get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-               @Override
-               public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                   if (!queryDocumentSnapshots.isEmpty()){
-                       subId = queryDocumentSnapshots.getDocuments().get(0).getId();
-                       database.collection("categories").document(catId).collection("subCategories").document(subId)
-                               .collection("Banner").add(model).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                                   @Override
-                                   public void onSuccess(DocumentReference documentReference) {
-                                       dialog.dismiss();
-                                       Toast.makeText(Banner.this, "Banner Added Successfully", Toast.LENGTH_SHORT).show();
-                                   }
-                               }).addOnFailureListener(new OnFailureListener() {
-                                   @Override
-                                   public void onFailure(@NonNull Exception e) {
-                                       dialog.dismiss();
-                                       Toast.makeText(Banner.this, "Some error occured", Toast.LENGTH_SHORT).show();
-                                   }
-                               });
-                   }
+        database.collection("categories").document(catId).collection("subCategories").whereEqualTo("subCategoryName",subCategoryName).get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                if (!queryDocumentSnapshots.isEmpty()){
+                    subId = queryDocumentSnapshots.getDocuments().get(0).getId();
+                    database.collection("categories").document(catId).collection("subCategories").document(subId)
+                            .collection("Banner").add(model).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                                @Override
+                                public void onSuccess(DocumentReference documentReference) {
+                                    dialog.dismiss();
+                                    Toast.makeText(Banner.this, "Banner Added Successfully", Toast.LENGTH_SHORT).show();
+                                }
+                            }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    dialog.dismiss();
+                                    Toast.makeText(Banner.this, "Some error occured", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                }
 
 
-               }
-           }).addOnFailureListener(new OnFailureListener() {
-               @Override
-               public void onFailure(@NonNull Exception e) {
-                   Toast.makeText(Banner.this, "Sub Category Not Found", Toast.LENGTH_SHORT).show();
-               }
-           });
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(Banner.this, "Sub Category Not Found", Toast.LENGTH_SHORT).show();
+            }
+        });
 
     }
 
@@ -326,7 +360,7 @@ public class Banner extends AppCompatActivity {
                                                 for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
                                                     String bannerImageUrl = document.getString("bannerImageUrl");
                                                     if (bannerImageUrl != null) {
-                                                               bannerlist.add(bannerImageUrl);
+                                                        bannerlist.add(bannerImageUrl);
                                                     }
                                                 }
 
@@ -354,5 +388,6 @@ public class Banner extends AppCompatActivity {
                     }
                 });
     }
+
 
 }

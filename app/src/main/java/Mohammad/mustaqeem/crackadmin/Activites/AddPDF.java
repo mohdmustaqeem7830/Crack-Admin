@@ -50,6 +50,8 @@ public class AddPDF extends AppCompatActivity {
     ActivityAddPdfBinding binding;
 
     String[] categoryArray;
+
+    int UCROP_REQUEST_CODE = 26;
     String[] subCategoryArray;
 
     Uri pdfUri;
