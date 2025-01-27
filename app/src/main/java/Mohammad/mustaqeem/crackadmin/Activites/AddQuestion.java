@@ -402,47 +402,46 @@ public class AddQuestion extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        //for question image
-
-        if (requestCode == SELECT_IMAGE_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
-            imageUri = data.getData();
-            if (imageUri != null) {
-                startCrop(imageUri,UCROP_REQUEST_CODE);
-            }
-        } else if (requestCode == UCROP_REQUEST_CODE && resultCode == RESULT_OK) {
-            final Uri resultUriquestion = UCrop.getOutput(data);
-            if (resultUriquestion != null) {
-                imageUri = resultUriquestion; // Update imageUri with cropped image
-                try {
-                    InputStream imageStream = getContentResolver().openInputStream(imageUri);
-                    Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
-                    binding.image.setImageBitmap(selectedImage);
-                } catch (Exception e) {
-                    e.printStackTrace();
+        if (resultCode == RESULT_OK && data != null) {
+            if (requestCode == SELECT_IMAGE_REQUEST_CODE) {
+                // For question image selection
+                imageUri = data.getData();
+                if (imageUri != null) {
+                    startCrop(imageUri, UCROP_REQUEST_CODE);
                 }
-            }
-        } else if (resultCode == UCrop.RESULT_ERROR) {
-            final Throwable cropError = UCrop.getError(data);
-            Toast.makeText(this, "Cropping failed: " + cropError.getMessage(), Toast.LENGTH_SHORT).show();
-        }
-
-        //for solution image
-
-        if (requestCode == SELECT_SOLUTION_IMAGE_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
-            solutionImageUri = data.getData();
-            if (solutionImageUri != null) {
-                startCrop(solutionImageUri,UCROP_SOLUTION_REQUEST_CODE);
-            }
-        } else if (requestCode ==UCROP_SOLUTION_REQUEST_CODE  && resultCode == RESULT_OK) {
-            final Uri resultUri = UCrop.getOutput(data);
-            if (resultUri != null) {
-                solutionImageUri = resultUri; // Update imageUri with cropped image
-                try {
-                    InputStream imageStream = getContentResolver().openInputStream(solutionImageUri);
-                    Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
-                    binding.solutionImage.setImageBitmap(selectedImage);
-                } catch (Exception e) {
-                    e.printStackTrace();
+            } else if (requestCode == UCROP_REQUEST_CODE) {
+                // For question image cropping
+                final Uri resultUriQuestion = UCrop.getOutput(data);
+                if (resultUriQuestion != null) {
+                    imageUri = resultUriQuestion;
+                    try {
+                        binding.question.setText(imageUri.toString());
+                        InputStream imageStream = getContentResolver().openInputStream(imageUri);
+                        Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
+                        binding.image.setImageBitmap(selectedImage);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            } else if (requestCode == SELECT_SOLUTION_IMAGE_REQUEST_CODE) {
+                // For solution image selection
+                solutionImageUri = data.getData();
+                if (solutionImageUri != null) {
+                    startCrop(solutionImageUri, UCROP_SOLUTION_REQUEST_CODE);
+                }
+            } else if (requestCode == UCROP_SOLUTION_REQUEST_CODE) {
+                // For solution image cropping
+                final Uri resultUriSolution = UCrop.getOutput(data);
+                if (resultUriSolution != null) {
+                    solutionImageUri = resultUriSolution;
+                    try {
+                        binding.solution.setText(solutionImageUri.toString());
+                        InputStream imageStream = getContentResolver().openInputStream(solutionImageUri);
+                        Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
+                        binding.solutionImage.setImageBitmap(selectedImage);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         } else if (resultCode == UCrop.RESULT_ERROR) {
@@ -450,8 +449,13 @@ public class AddQuestion extends AppCompatActivity {
             Toast.makeText(this, "Cropping failed: " + cropError.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
-    private void startCrop(@NonNull Uri uri,int code) {
-        String destinationFileName = "CroppedImage";
+
+    private void startCrop(@NonNull Uri uri, int code) {
+        // Make the destination file name unique
+        String destinationFileName = (code == UCROP_REQUEST_CODE)
+                ? "CroppedQuestionImage.png"
+                : "CroppedSolutionImage.png";
+
         Uri destinationUri = Uri.fromFile(new File(getCacheDir(), destinationFileName));
 
         UCrop.Options options = new UCrop.Options();
@@ -466,6 +470,7 @@ public class AddQuestion extends AppCompatActivity {
                 .withOptions(options)
                 .start(this, code);
     }
+
 
 
 
