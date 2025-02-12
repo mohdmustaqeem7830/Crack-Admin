@@ -118,9 +118,9 @@ public class AddQuestion extends AppCompatActivity {
 
     String type = "MCQ";
 
-    String multiple ;
+    String multiple = "single" ;
 
-    String question="", option1="1", option2="2", option3="3", option4="4", answer="",solution="";
+    String question="", option1="1", option2="2", option3="3", option4="4", answer,solution="";
 
 
     @Override
@@ -347,7 +347,7 @@ public class AddQuestion extends AppCompatActivity {
                     option3 = binding.option3.getText().toString();
                     option4 = binding.option4.getText().toString();
                     answer = checkAnswer;
-                    if (categoryName.isEmpty() || subCategoryName.isEmpty() || studyCategoryName.isEmpty() || qpName.isEmpty() || option1.isEmpty() || option2.isEmpty() || option3.isEmpty() || option4.isEmpty() || answer.isEmpty()) {
+                    if (categoryName.isEmpty() || subCategoryName.isEmpty() || studyCategoryName.isEmpty() || qpName.isEmpty() || option1.isEmpty() || option2.isEmpty() || option3.isEmpty() || option4.isEmpty() || answer==null) {
                         dialog.dismiss();
                         Toast.makeText(AddQuestion.this, "Please fill all the fields", Toast.LENGTH_SHORT).show();
                     } else {
@@ -1268,6 +1268,7 @@ public class AddQuestion extends AppCompatActivity {
         questionName = questionEntry.getKey();
         String questionUrl = questionEntry.getValue();
         if (solutionImageMap.containsKey(questionName)) {
+            answer = "";
             String solutionUrl = solutionImageMap.get(questionName);
             solutionImageUri = Uri.parse(solutionUrl);
             imageUri =Uri.parse(questionUrl);

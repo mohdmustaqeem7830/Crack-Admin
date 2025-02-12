@@ -91,7 +91,7 @@ public class AddSubjectQuestion extends AppCompatActivity {
 
     ArrayList<AddQuestionPaperModel> qplist;
     int currentIndex;
-    String multiple;
+    String multiple = "single";
     int SELECT_QUESTION_IMAGE_FOLDER = 50;
     int SELECT_SOLTUTION_IMAGE_FOLDER = 55;
 
@@ -106,7 +106,7 @@ public class AddSubjectQuestion extends AppCompatActivity {
 
     String type = "MCQ";
 
-    String question = "", option1 = "1", option2 = "2", option3 = "3", option4 = "4", answer = "", solution = "";
+    String question = "", option1 = "1", option2 = "2", option3 = "3", option4 = "4", answer, solution = "";
 
 
     @Override
@@ -346,7 +346,7 @@ public class AddSubjectQuestion extends AppCompatActivity {
                 dialog.show();
 
                 if (type.equals("MCQ") || type.equals("MSQ")) {
-                    if (categoryName.isEmpty() || subCategoryName.isEmpty() || studyCategoryName.isEmpty() || qpName.isEmpty() || option1.isEmpty() || option2.isEmpty() || option3.isEmpty() || option4.isEmpty()) {
+                    if (categoryName.isEmpty() || subCategoryName.isEmpty() || studyCategoryName.isEmpty() || qpName.isEmpty() || option1.isEmpty() || option2.isEmpty() || option3.isEmpty() || option4.isEmpty()||answer==null) {
                         dialog.dismiss();
                         Toast.makeText(AddSubjectQuestion.this, "Please fill all the fields", Toast.LENGTH_SHORT).show();
                     } else {
@@ -1390,6 +1390,7 @@ public class AddSubjectQuestion extends AppCompatActivity {
         questionName = questionEntry.getKey();
         String questionUrl = questionEntry.getValue();
         if (solutionImageMap.containsKey(questionName)) {
+            answer = "";
             String solutionUrl = solutionImageMap.get(questionName);
             solutionImageUri = Uri.parse(solutionUrl);
             imageUri = Uri.parse(questionUrl);
