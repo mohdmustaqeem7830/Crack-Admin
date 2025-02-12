@@ -189,7 +189,6 @@ public class AddQuestion extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Toast.makeText(AddQuestion.this, "Question "+questionImageMap.size(), Toast.LENGTH_SHORT).show();
-                Toast.makeText(AddQuestion.this, "solution "+solutionImageMap.size(), Toast.LENGTH_SHORT).show();
               }
         });
 
