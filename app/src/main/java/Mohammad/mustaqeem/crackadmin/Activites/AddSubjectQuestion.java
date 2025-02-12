@@ -69,35 +69,35 @@ public class AddSubjectQuestion extends AppCompatActivity {
 
     String[] typeArray;
 
-    int totalQuestions ;
+    int totalQuestions;
     ProgressDialog progressDialog;
     String questionName;
-    int  UCROP_REQUEST_CODE = 40;
+    int UCROP_REQUEST_CODE = 40;
     int UCROP_SOLUTION_REQUEST_CODE = 37;
     FirebaseFirestore database;
     private FirebaseStorage storage;
 
-    String catId;
+    String catId, subId, qpId, subjectId;
     LinkedHashMap<String, String> questionImageMap = new LinkedHashMap<>();
     LinkedHashMap<String, String> solutionImageMap = new LinkedHashMap<>();
     Iterator<Map.Entry<String, String>> questionIterator;
 
-    String downloadUrlLink,solutiondownloadUrlLink;
+    String downloadUrlLink, solutiondownloadUrlLink;
 
-    String categoryName, subCategoryName, studyCategoryName, qpName, qId,subjectName;
+    String categoryName, subCategoryName, studyCategoryName, qpName, qId, subjectName;
 
     ArrayList<AddCategoryModel> categoriesList;
     ArrayList<AddSubCategoryModel> subCategoriesList;
 
     ArrayList<AddQuestionPaperModel> qplist;
-    int currentIndex ;
-    String multiple ;
+    int currentIndex;
+    String multiple;
     int SELECT_QUESTION_IMAGE_FOLDER = 50;
     int SELECT_SOLTUTION_IMAGE_FOLDER = 55;
 
     int SELECT_IMAGE_REQUEST_CODE = 25;
     int SELECT_SOLUTION_IMAGE_REQUEST_CODE = 30;
-    private Uri imageUri,solutionImageUri;
+    private Uri imageUri, solutionImageUri;
 
     private ProgressDialog dialog;
 
@@ -106,7 +106,7 @@ public class AddSubjectQuestion extends AppCompatActivity {
 
     String type = "MCQ";
 
-    String question="", option1="1", option2="2", option3="3", option4="4", answer="",solution="";
+    String question = "", option1 = "1", option2 = "2", option3 = "3", option4 = "4", answer = "", solution = "";
 
 
     @Override
@@ -345,26 +345,26 @@ public class AddSubjectQuestion extends AppCompatActivity {
 
                 dialog.show();
 
-                if (type.equals("MCQ")  || type.equals("MSQ")) {
-                    if (categoryName.isEmpty() || subCategoryName.isEmpty() || studyCategoryName.isEmpty() || qpName.isEmpty() ||  option1.isEmpty() || option2.isEmpty() || option3.isEmpty() || option4.isEmpty()) {
+                if (type.equals("MCQ") || type.equals("MSQ")) {
+                    if (categoryName.isEmpty() || subCategoryName.isEmpty() || studyCategoryName.isEmpty() || qpName.isEmpty() || option1.isEmpty() || option2.isEmpty() || option3.isEmpty() || option4.isEmpty()) {
                         dialog.dismiss();
                         Toast.makeText(AddSubjectQuestion.this, "Please fill all the fields", Toast.LENGTH_SHORT).show();
                     } else {
                         if (imageUri != null) {
-                            if (solutionImageUri!=null){
+                            if (solutionImageUri != null) {
                                 uploadSolutionImage();
-                            }else{
+                            } else {
                                 uploadImage(imageUri);
                             }
                         } else {
-                            if (solutionImageUri!=null){
+                            if (solutionImageUri != null) {
                                 uploadSolutionImage();
-                            }else{
-                                uploadQuestion( null);
+                            } else {
+                                uploadQuestion(null);
                             }
                         }
                     }
-                }  else if (type.equals("OCQ")) {
+                } else if (type.equals("OCQ")) {
                     if (categoryName.isEmpty() || subCategoryName.isEmpty() || studyCategoryName.isEmpty() || qpName.isEmpty() || question.isEmpty() || answer.isEmpty()) {
                         dialog.dismiss();
                         Toast.makeText(AddSubjectQuestion.this, "Please fill all the fields", Toast.LENGTH_SHORT).show();
@@ -372,7 +372,7 @@ public class AddSubjectQuestion extends AppCompatActivity {
                         if (imageUri != null) {
                             uploadImage(imageUri);
                         } else {
-                            uploadQuestion( null);
+                            uploadQuestion(null);
                         }
                     }
                 }
@@ -415,33 +415,33 @@ public class AddSubjectQuestion extends AppCompatActivity {
                 dialog.show();
 
                 if (type.equals("MCQ")) {
-                    if (categoryName.isEmpty() || subCategoryName.isEmpty() || studyCategoryName.isEmpty() || qpName.isEmpty() ||  option1.isEmpty() || option2.isEmpty() || option3.isEmpty() || option4.isEmpty() ) {
+                    if (categoryName.isEmpty() || subCategoryName.isEmpty() || studyCategoryName.isEmpty() || qpName.isEmpty() || option1.isEmpty() || option2.isEmpty() || option3.isEmpty() || option4.isEmpty()) {
                         dialog.dismiss();
                         Toast.makeText(AddSubjectQuestion.this, "Please fill all the fields", Toast.LENGTH_SHORT).show();
                     } else {
                         if (imageUri != null) {
-                            if (solutionImageUri!=null){
+                            if (solutionImageUri != null) {
                                 updateSolutionImage();
-                            }else{
+                            } else {
                                 updateImage(imageUri);
                             }
                         } else {
-                            if (solutionImageUri!=null){
+                            if (solutionImageUri != null) {
                                 updateSolutionImage();
-                            }else{
-                                updateQuestion( null);
+                            } else {
+                                updateQuestion(null);
                             }
                         }
                     }
                 } else if (type.equals("MSQ")) {
-                    if (categoryName.isEmpty() || subCategoryName.isEmpty() || studyCategoryName.isEmpty() || qpName.isEmpty() || question.isEmpty() || option1.isEmpty() || option2.isEmpty() || option3.isEmpty() || option4.isEmpty() || answer.isEmpty() ) {
+                    if (categoryName.isEmpty() || subCategoryName.isEmpty() || studyCategoryName.isEmpty() || qpName.isEmpty() || question.isEmpty() || option1.isEmpty() || option2.isEmpty() || option3.isEmpty() || option4.isEmpty() || answer.isEmpty()) {
                         dialog.dismiss();
                         Toast.makeText(AddSubjectQuestion.this, "Please fill all the fields", Toast.LENGTH_SHORT).show();
                     } else {
                         if (imageUri != null) {
                             updateImage(imageUri);
                         } else {
-                            updateQuestion( null);
+                            updateQuestion(null);
                         }
                     }
                 } else if (type.equals("OCQ")) {
@@ -452,14 +452,70 @@ public class AddSubjectQuestion extends AppCompatActivity {
                         if (imageUri != null) {
                             updateImage(imageUri);
                         } else {
-                            updateQuestion( null);
+                            updateQuestion(null);
                         }
                     }
                 }
             }
         });
-    }
+        binding.abcCheckBox.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                binding.option1.setText("a");
+                binding.option2.setText("b");
+                binding.option3.setText("c");
+                binding.option4.setText("d");
+                option1 = "a";
+                option2 = "b";
+                option3 = "c";
+                option4 = "d";
+            }
+        });
 
+        binding.smallRoman.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                binding.option1.setText("(i)");
+                binding.option2.setText("(ii)");
+                binding.option3.setText("(iii)");
+                binding.option4.setText("(iv)");
+                option1 = "(i)";
+                option2 = "(ii)";
+                option3 = "(iii)";
+                option4 = "(iv)";
+            }
+        });
+
+        binding.roman.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                binding.option1.setText("(I)");
+                binding.option2.setText("(II)");
+                binding.option3.setText("(III)");
+                binding.option4.setText("(IV)");
+                option1 = "(I)";
+                option2 = "(II)";
+                option3 = "(III)";
+                option4 = "(IV)";
+            }
+        });
+
+        binding.clear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                binding.option1.setText("");
+                binding.option2.setText("");
+                binding.option3.setText("");
+                binding.option4.setText("");
+                option1 = "";
+                option2 = "";
+                option3 = "";
+                option4 = "";
+            }
+        });
+
+
+    }
 
 
     @Override
@@ -493,11 +549,11 @@ public class AddSubjectQuestion extends AppCompatActivity {
                 if (solutionImageUri != null) {
                     startCrop(solutionImageUri, UCROP_SOLUTION_REQUEST_CODE);
                 }
-            }else if (requestCode==SELECT_QUESTION_IMAGE_FOLDER || requestCode == SELECT_SOLTUTION_IMAGE_FOLDER){
-                if (requestCode==SELECT_QUESTION_IMAGE_FOLDER){
+            } else if (requestCode == SELECT_QUESTION_IMAGE_FOLDER || requestCode == SELECT_SOLTUTION_IMAGE_FOLDER) {
+                if (requestCode == SELECT_QUESTION_IMAGE_FOLDER) {
                     questionImageMap.clear();
                     handleImageResult(requestCode, data);
-                }else{
+                } else {
                     solutionImageMap.clear();
                     handleImageResult(requestCode, data);
                 }
@@ -518,12 +574,13 @@ public class AddSubjectQuestion extends AppCompatActivity {
                     }
                 }
             }
-        }else if (resultCode == UCrop.RESULT_ERROR) {
+        } else if (resultCode == UCrop.RESULT_ERROR) {
             final Throwable cropError = UCrop.getError(data);
             Toast.makeText(this, "Cropping failed: " + cropError.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
-    private void startCrop(@NonNull Uri uri,int code) {
+
+    private void startCrop(@NonNull Uri uri, int code) {
         String destinationFileName = "CroppedImage";
         Uri destinationUri = Uri.fromFile(new File(getCacheDir(), destinationFileName));
 
@@ -569,7 +626,7 @@ public class AddSubjectQuestion extends AppCompatActivity {
                     public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                         if (!queryDocumentSnapshots.isEmpty()) {
                             DocumentSnapshot snapshot = queryDocumentSnapshots.getDocuments().get(0);
-                            String catId = snapshot.getId();
+                            catId = snapshot.getId();
 
                             database.collection("categories").document(catId).collection("subCategories").get()
                                     .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
@@ -627,7 +684,7 @@ public class AddSubjectQuestion extends AppCompatActivity {
         binding.question.setText("");
         binding.image.setImageResource(R.drawable.baseline_image_24);
         binding.solutionImage.setImageResource(R.drawable.baseline_image_24);
-        solutionImageUri=null;
+        solutionImageUri = null;
         imageUri = null;
         if (type.equals("MCQ") || type.equals("MSQ")) {
             binding.option1.setText("");
@@ -701,67 +758,47 @@ public class AddSubjectQuestion extends AppCompatActivity {
 
 
     public void getSubjectList() {
-        // Fetch categories
-        database.collection("categories")
-                .whereEqualTo("categoryName", categoryName)
+        database.collection("categories").document(catId)
+                .collection("subCategories")
+                .whereEqualTo("subCategoryName", subCategoryName)
                 .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    if (queryDocumentSnapshots.isEmpty()) {
-                        showToast("No categories found");
+                .addOnSuccessListener(subCategorySnapshots -> {
+                    if (subCategorySnapshots.isEmpty()) {
+                        showToast("No sub-categories found");
+                        dialog.dismiss();
                         return;
                     }
 
-                    // Get category ID
-                    String catId = queryDocumentSnapshots.getDocuments().get(0).getId();
+                    subId = subCategorySnapshots.getDocuments().get(0).getId();
 
-                    // Fetch sub-categories
+                    // Fetch subjects
                     database.collection("categories").document(catId)
-                            .collection("subCategories")
-                            .whereEqualTo("subCategoryName", subCategoryName)
-                            .get()
-                            .addOnSuccessListener(subCategorySnapshots -> {
-                                if (subCategorySnapshots.isEmpty()) {
-                                    showToast("No sub-categories found");
-                                    dialog.dismiss();
-                                    return;
+                            .collection("subCategories").document(subId)
+                            .collection(studyCategoryName).get()
+                            .addOnSuccessListener(subjectSnapshots -> {
+                                List<String> subjectList = new ArrayList<>();
+                                for (DocumentSnapshot snapshot : subjectSnapshots.getDocuments()) {
+                                    Subject subject = snapshot.toObject(Subject.class);
+                                    if (subject != null) {
+                                        subjectList.add(subject.getSubjectName());
+                                    }
                                 }
 
-                                // Get sub-category ID
-                                String subcatId = subCategorySnapshots.getDocuments().get(0).getId();
+                                if (subjectList.isEmpty()) {
+                                    showToast("No subjects found");
+                                } else {
+                                    updateSubjectSpinner(subjectList);
+                                }
 
-                                // Fetch subjects
-                                database.collection("categories").document(catId)
-                                        .collection("subCategories").document(subcatId)
-                                        .collection(studyCategoryName).get()
-                                        .addOnSuccessListener(subjectSnapshots -> {
-                                            List<String> subjectList = new ArrayList<>();
-                                            for (DocumentSnapshot snapshot : subjectSnapshots.getDocuments()) {
-                                                Subject subject = snapshot.toObject(Subject.class);
-                                                if (subject != null) {
-                                                    subjectList.add(subject.getSubjectName());
-                                                }
-                                            }
-
-                                            if (subjectList.isEmpty()) {
-                                                showToast("No subjects found");
-                                            } else {
-                                                updateSubjectSpinner(subjectList);
-                                            }
-
-                                            dialog.dismiss();
-                                        })
-                                        .addOnFailureListener(e -> {
-                                            showToast("Failed to fetch subjects");
-                                            dialog.dismiss();
-                                        });
+                                dialog.dismiss();
                             })
                             .addOnFailureListener(e -> {
-                                showToast("Failed to fetch sub-categories");
+                                showToast("Failed to fetch subjects");
                                 dialog.dismiss();
                             });
                 })
                 .addOnFailureListener(e -> {
-                    showToast("Failed to fetch categories");
+                    showToast("Failed to fetch sub-categories");
                     dialog.dismiss();
                 });
     }
@@ -779,72 +816,40 @@ public class AddSubjectQuestion extends AppCompatActivity {
 
 
     public void getQuestionPaperList() {
-        // Get the category ID
-
-        Toast.makeText(this, categoryName + " " + subCategoryName + " " + studyCategoryName, Toast.LENGTH_SHORT).show();
-        database.collection("categories").whereEqualTo("categoryName", categoryName).get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    if (queryDocumentSnapshots.isEmpty()) {
-                        Toast.makeText(AddSubjectQuestion.this, "No categories found", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    String catId = queryDocumentSnapshots.getDocuments().get(0).getId();
-
-                    // Get the sub-category ID
-                    database.collection("categories").document(catId).collection("subCategories")
-                            .whereEqualTo("subCategoryName", subCategoryName).get()
-                            .addOnSuccessListener(queryDocumentSnapshots1 -> {
-                                if (queryDocumentSnapshots1.isEmpty()) {
-                                    dialog.dismiss();
-                                    Toast.makeText(AddSubjectQuestion.this, "No sub-categories found", Toast.LENGTH_SHORT).show();
-                                    return;
-                                }
-                                String subcatId = queryDocumentSnapshots1.getDocuments().get(0).getId();
-
-                                // Get the question papers
-                                database.collection("categories").document(catId).collection("subCategories").document(subcatId)
-                                        .collection(studyCategoryName).whereEqualTo("subjectName",subjectName).get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                                            @Override
-                                            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                                                String subjectId =  queryDocumentSnapshots.getDocuments().get(0).getId();
-                                                database.collection("categories").document(catId)
-                                                        .collection("subCategories").document(subcatId)
-                                                        .collection(studyCategoryName).document(subjectId)
-                                                        .collection("subject_question_paper").get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                                                            @Override
-                                                            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                                                                qplist.clear();
-                                                                List<String> list = new ArrayList<>();
-                                                                for (DocumentSnapshot snapshot : queryDocumentSnapshots.getDocuments()) {
-                                                                    AddQuestionPaperModel model = snapshot.toObject(AddQuestionPaperModel.class);
-                                                                    if (model != null) {
-                                                                        model.setQpId(snapshot.getId());
-                                                                        qplist.add(model);
-                                                                        list.add(model.getQpName());
-                                                                    }
-                                                                }
-                                                                qpArray = list.toArray(new String[0]);
-                                                                ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_dropdown_item_1line, qpArray);
-                                                                binding.qpName.setAdapter(categoryAdapter);
-
-                                                            }
-                                                        });
+        database.collection("categories").document(catId).collection("subCategories").document(subId)
+                .collection(studyCategoryName).whereEqualTo("subjectName", subjectName).get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        subjectId = queryDocumentSnapshots.getDocuments().get(0).getId();
+                        database.collection("categories").document(catId)
+                                .collection("subCategories").document(subId)
+                                .collection(studyCategoryName).document(subjectId)
+                                .collection("subject_question_paper").get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                                    @Override
+                                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                                        qplist.clear();
+                                        List<String> list = new ArrayList<>();
+                                        for (DocumentSnapshot snapshot : queryDocumentSnapshots.getDocuments()) {
+                                            AddQuestionPaperModel model = snapshot.toObject(AddQuestionPaperModel.class);
+                                            if (model != null) {
+                                                model.setQpId(snapshot.getId());
+                                                qplist.add(model);
+                                                list.add(model.getQpName());
                                             }
-                                        });
-                            })
-                            .addOnFailureListener(e -> {
-                                dialog.dismiss();
-                                Toast.makeText(AddSubjectQuestion.this, "Failed to fetch sub-categories", Toast.LENGTH_SHORT).show();
-                            });
-                })
-                .addOnFailureListener(e -> {
-                    dialog.dismiss();
-                    Toast.makeText(AddSubjectQuestion.this, "Failed to fetch categories", Toast.LENGTH_SHORT).show();
+                                        }
+                                        qpArray = list.toArray(new String[0]);
+                                        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_dropdown_item_1line, qpArray);
+                                        binding.qpName.setAdapter(categoryAdapter);
+
+                                    }
+                                });
+                    }
                 });
     }
+
     private void uploadImage(Uri imageUri) {
 
-        StorageReference storageRef = storage.getReference().child(categoryName+"/"+subCategoryName+"/"+studyCategoryName+"/"+subjectName+"/"+qpName+"/"+"question_images/" + System.currentTimeMillis() + ".jpg");
+        StorageReference storageRef = storage.getReference().child(categoryName + "/" + subCategoryName + "/" + studyCategoryName + "/" + subjectName + "/" + qpName + "/" + "question_images/" + System.currentTimeMillis() + ".jpg");
 
         storageRef.putFile(imageUri)
                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -871,7 +876,7 @@ public class AddSubjectQuestion extends AppCompatActivity {
 
     private void uploadSolutionImage() {
 
-        StorageReference storageRef = storage.getReference().child(categoryName+"/"+subCategoryName+"/"+studyCategoryName+"/"+subjectName+"/"+qpName+"/"+"solutionImage/" + System.currentTimeMillis() + ".jpg");
+        StorageReference storageRef = storage.getReference().child(categoryName + "/" + subCategoryName + "/" + studyCategoryName + "/" + subjectName + "/" + qpName + "/" + "solutionImage/" + System.currentTimeMillis() + ".jpg");
 
         storageRef.putFile(solutionImageUri)
                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -882,11 +887,11 @@ public class AddSubjectQuestion extends AppCompatActivity {
                             public void onSuccess(Uri downloadUri) {
 
                                 solutiondownloadUrlLink = downloadUri.toString();
-                                if(imageUri!=null){
+                                if (imageUri != null) {
                                     uploadImage(imageUri);
 
-                                }else{
-                                   uploadQuestion(null);
+                                } else {
+                                    uploadQuestion(null);
                                 }
 
                                 Toast.makeText(AddSubjectQuestion.this, "uploaded", Toast.LENGTH_SHORT).show();
@@ -925,117 +930,69 @@ public class AddSubjectQuestion extends AppCompatActivity {
     }
 
     public void uploadQuestion(String qImage) {
-        // Fetch categories
-        database.collection("categories").whereEqualTo("categoryName", categoryName).get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    if (queryDocumentSnapshots.isEmpty()) {
+
+        database.collection("categories").document(catId)
+                .collection("subCategories").document(subId)
+                .collection(studyCategoryName).document(subjectId)
+                .collection("subject_question_paper").whereEqualTo("qpName", qpName).get()
+                .addOnSuccessListener(queryDocumentSnapshots3 -> {
+                    if (queryDocumentSnapshots3.isEmpty()) {
                         dialog.dismiss();
-                        Toast.makeText(AddSubjectQuestion.this, "No categories found", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(AddSubjectQuestion.this, "No question papers found", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    String catId = queryDocumentSnapshots.getDocuments().get(0).getId();
+                    String qpID = queryDocumentSnapshots3.getDocuments().get(0).getId();
+                    DocumentReference qpDocRef = database.collection("categories").document(catId)
+                            .collection("subCategories").document(subId)
+                            .collection(studyCategoryName).document(subjectId)
+                            .collection("subject_question_paper").document(qpID);
 
-                    // Fetch sub-categories
-                    database.collection("categories").document(catId).collection("subCategories")
-                            .whereEqualTo("subCategoryName", subCategoryName).get()
-                            .addOnSuccessListener(queryDocumentSnapshots1 -> {
-                                if (queryDocumentSnapshots1.isEmpty()) {
-                                    dialog.dismiss();
-                                    Toast.makeText(AddSubjectQuestion.this, "No sub-categories found", Toast.LENGTH_SHORT).show();
-                                    return;
+                    // Fetch existing questions
+                    qpDocRef.collection("questions").get()
+                            .addOnSuccessListener(questionsTask -> {
+                                int newIndex = questionsTask.size() + 1;
+                                Question questionModel;
+
+                                switch (type) {
+                                    case "MCQ":
+                                        questionModel = new Question(question, option1, option2, option3, option4, answer, newIndex, qImage, type, solution, solutiondownloadUrlLink);
+                                        break;
+                                    case "MSQ":
+                                        questionModel = new Question(question, option1, option2, option3, option4, answer, newIndex, qImage, type, solution, solutiondownloadUrlLink);
+                                        break;
+                                    case "OCQ":
+                                        questionModel = new Question(question, answer, newIndex, qImage, type, solution, solutiondownloadUrlLink);
+                                        break;
+                                    default:
+                                        handleError("Invalid question type");
+                                        return;
                                 }
-                                String subcatId = queryDocumentSnapshots1.getDocuments().get(0).getId();
 
-                                // Fetch question papers
-                                database.collection("categories").document(catId)
-                                        .collection("subCategories").document(subcatId)
-                                        .collection(studyCategoryName).whereEqualTo("subjectName", subjectName).get()
-                                        .addOnSuccessListener(queryDocumentSnapshots2 -> {
-                                            if (queryDocumentSnapshots2.isEmpty()) {
-                                                dialog.dismiss();
-                                                Toast.makeText(AddSubjectQuestion.this, "No question papers found", Toast.LENGTH_SHORT).show();
-                                                return;
-                                            }
-                                            String subjectId = queryDocumentSnapshots2.getDocuments().get(0).getId();
-
-                                            // Fetch specific question paper
-                                            database.collection("categories").document(catId)
-                                                    .collection("subCategories").document(subcatId)
-                                                    .collection(studyCategoryName).document(subjectId)
-                                                    .collection("subject_question_paper").whereEqualTo("qpName", qpName).get()
-                                                    .addOnSuccessListener(queryDocumentSnapshots3 -> {
-                                                        if (queryDocumentSnapshots3.isEmpty()) {
-                                                            dialog.dismiss();
-                                                            Toast.makeText(AddSubjectQuestion.this, "No question papers found", Toast.LENGTH_SHORT).show();
-                                                            return;
-                                                        }
-                                                        String qpID = queryDocumentSnapshots3.getDocuments().get(0).getId();
-                                                        DocumentReference qpDocRef = database.collection("categories").document(catId)
-                                                                .collection("subCategories").document(subcatId)
-                                                                .collection(studyCategoryName).document(subjectId)
-                                                                .collection("subject_question_paper").document(qpID);
-
-                                                        // Fetch existing questions
-                                                        qpDocRef.collection("questions").get()
-                                                                .addOnSuccessListener(questionsTask -> {
-                                                                    int newIndex = questionsTask.size() + 1;
-                                                                    Question questionModel;
-
-                                                                    switch (type) {
-                                                                        case "MCQ":
-                                                                            questionModel = new Question(question, option1, option2, option3, option4, answer, newIndex, qImage, type,solution,solutiondownloadUrlLink);
-                                                                            break;
-                                                                        case "MSQ":
-                                                                            questionModel = new Question(question, option1, option2, option3, option4, answer, newIndex, qImage, type,solution,solutiondownloadUrlLink);
-                                                                            break;
-                                                                        case "OCQ":
-                                                                            questionModel = new Question(question, answer, newIndex, qImage, type,solution,solutiondownloadUrlLink);
-                                                                            break;
-                                                                        default:
-                                                                            handleError("Invalid question type");
-                                                                            return;
-                                                                    }
-
-                                                                    qpDocRef.collection("questions").add(questionModel)
-                                                                            .addOnCompleteListener(task -> {
-                                                                                dialog.dismiss();
-                                                                                if (task.isSuccessful()) {
-                                                                                    clearInputFields(type);
-                                                                                    Toast.makeText(AddSubjectQuestion.this, "Question Added Successfully", Toast.LENGTH_SHORT).show();
-                                                                                    if (multiple.equals("multiple")){
-                                                                                        questionIterator.remove();
-                                                                                        solutionImageMap.remove(questionName);
-                                                                                        uploadNextImage(questionIterator, progressDialog, currentIndex + 1, totalQuestions);
-                                                                                    }
-                                                                                } else {
-                                                                                    Toast.makeText(AddSubjectQuestion.this, "Failed to add question", Toast.LENGTH_SHORT).show();
-                                                                                }
-                                                                            })
-                                                                            .addOnFailureListener(e -> handleError("Error adding question"));
-                                                                })
-                                                                .addOnFailureListener(e -> {
-                                                                    dialog.dismiss();
-                                                                    Toast.makeText(AddSubjectQuestion.this, "Failed to fetch questions", Toast.LENGTH_SHORT).show();
-                                                                });
-                                                    })
-                                                    .addOnFailureListener(e -> {
-                                                        dialog.dismiss();
-                                                        Toast.makeText(AddSubjectQuestion.this, "Failed to fetch question papers", Toast.LENGTH_SHORT).show();
-                                                    });
-                                        })
-                                        .addOnFailureListener(e -> {
+                                qpDocRef.collection("questions").add(questionModel)
+                                        .addOnCompleteListener(task -> {
                                             dialog.dismiss();
-                                            Toast.makeText(AddSubjectQuestion.this, "Failed to fetch study categories", Toast.LENGTH_SHORT).show();
-                                        });
+                                            if (task.isSuccessful()) {
+                                                clearInputFields(type);
+                                                Toast.makeText(AddSubjectQuestion.this, "Question Added Successfully", Toast.LENGTH_SHORT).show();
+                                                if (multiple.equals("multiple")) {
+                                                    questionIterator.remove();
+                                                    solutionImageMap.remove(questionName);
+                                                    uploadNextImage(questionIterator, progressDialog, currentIndex + 1, totalQuestions);
+                                                }
+                                            } else {
+                                                Toast.makeText(AddSubjectQuestion.this, "Failed to add question", Toast.LENGTH_SHORT).show();
+                                            }
+                                        })
+                                        .addOnFailureListener(e -> handleError("Error adding question"));
                             })
                             .addOnFailureListener(e -> {
                                 dialog.dismiss();
-                                Toast.makeText(AddSubjectQuestion.this, "Failed to fetch sub-categories", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(AddSubjectQuestion.this, "Failed to fetch questions", Toast.LENGTH_SHORT).show();
                             });
                 })
                 .addOnFailureListener(e -> {
                     dialog.dismiss();
-                    Toast.makeText(AddSubjectQuestion.this, "Failed to fetch categories", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AddSubjectQuestion.this, "Failed to fetch question papers", Toast.LENGTH_SHORT).show();
                 });
     }
 
@@ -1118,7 +1075,7 @@ public class AddSubjectQuestion extends AppCompatActivity {
 
                                                                         downloadUrlLink = question.getqImage();
                                                                     }
-                                                                    if (question.getSolutionImage()!=null){
+                                                                    if (question.getSolutionImage() != null) {
                                                                         Glide.with(AddSubjectQuestion.this)
                                                                                 .load(question.getSolutionImage())
                                                                                 .into(binding.solutionImage);
@@ -1157,6 +1114,7 @@ public class AddSubjectQuestion extends AppCompatActivity {
         dialog.dismiss();
         Toast.makeText(AddSubjectQuestion.this, message, Toast.LENGTH_SHORT).show();
     }
+
     private void deleteImage() {
         StorageReference imageRef = FirebaseStorage.getInstance().getReferenceFromUrl(downloadUrlLink);
         imageRef.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -1186,7 +1144,7 @@ public class AddSubjectQuestion extends AppCompatActivity {
                         storageRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                             @Override
                             public void onSuccess(Uri downloadUri) {
-                                updateQuestion( downloadUri.toString());
+                                updateQuestion(downloadUri.toString());
                             }
                         });
                     }
@@ -1201,7 +1159,7 @@ public class AddSubjectQuestion extends AppCompatActivity {
     }
 
 
-    private void updateQuestion( String qImage) {
+    private void updateQuestion(String qImage) {
 
         Toast.makeText(this, String.valueOf(index), Toast.LENGTH_SHORT).show();
         database.collection("categories").whereEqualTo("categoryName", categoryName).get()
@@ -1335,6 +1293,7 @@ public class AddSubjectQuestion extends AppCompatActivity {
                     Toast.makeText(AddSubjectQuestion.this, "Failed to fetch categories", Toast.LENGTH_SHORT).show();
                 });
     }
+
     private void updateSolutionImage() {
         StorageReference storageRef = storage.getReference().child("solutionImage/" + System.currentTimeMillis() + ".jpg");
         storageRef.putFile(solutionImageUri)
@@ -1345,10 +1304,10 @@ public class AddSubjectQuestion extends AppCompatActivity {
                             @Override
                             public void onSuccess(Uri downloadUri) {
                                 solutiondownloadUrlLink = downloadUri.toString();
-                                if (imageUri!=null){
+                                if (imageUri != null) {
                                     updateImage(imageUri);
-                                }else{
-                                    updateQuestion( null);
+                                } else {
+                                    updateQuestion(null);
                                 }
                             }
                         });
@@ -1419,8 +1378,8 @@ public class AddSubjectQuestion extends AppCompatActivity {
         return result;
     }
 
-    private void uploadNextImage( Iterator<Map.Entry<String, String>> questionIterator,
-                                  ProgressDialog progressDialog, int currentIndex, int totalQuestions) {
+    private void uploadNextImage(Iterator<Map.Entry<String, String>> questionIterator,
+                                 ProgressDialog progressDialog, int currentIndex, int totalQuestions) {
         if (!questionIterator.hasNext()) {
             progressDialog.dismiss();
             Toast.makeText(progressDialog.getContext(), "All images uploaded successfully!", Toast.LENGTH_SHORT).show();
@@ -1433,7 +1392,7 @@ public class AddSubjectQuestion extends AppCompatActivity {
         if (solutionImageMap.containsKey(questionName)) {
             String solutionUrl = solutionImageMap.get(questionName);
             solutionImageUri = Uri.parse(solutionUrl);
-            imageUri =Uri.parse(questionUrl);
+            imageUri = Uri.parse(questionUrl);
             multiple = "multiple";
             progressDialog.setMessage("Uploading " + currentIndex + "/" + totalQuestions + ": " + questionName);
             uploadSolutionImage();
