@@ -2,15 +2,22 @@ package Mohammad.mustaqeem.crackadmin.Activites;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.ClipData;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.MediaStore;
+import android.provider.OpenableColumns;
+import android.text.TextUtils;
 import android.view.View;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
@@ -24,8 +31,10 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.canhub.cropper.CropImageView;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -46,6 +55,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -65,9 +75,8 @@ public class AddQuestion extends AppCompatActivity {
     String[] categoryArray;
     String[] studyArray;
     String[] subCategoryArray;
-
     String[] qpArray;
-
+    Dialog cropDialogue;
     String[] typeArray;
     FirebaseFirestore database;
     private FirebaseStorage storage;
@@ -75,7 +84,8 @@ public class AddQuestion extends AppCompatActivity {
     int UCROP_SOLUTION_REQUEST_CODE = 45;
 
     String catId,subId,qpId;
-
+    HashMap<String, String> questionImageMap = new HashMap<>();
+    HashMap<String, String> solutionImageMap = new HashMap<>();
 
     String downloadUrlLink,solutiondownloadUrlLink;
 
@@ -87,6 +97,8 @@ public class AddQuestion extends AppCompatActivity {
     ArrayList<AddQuestionPaperModel> qplist;
 
     int SELECT_IMAGE_REQUEST_CODE = 25;
+    int SELECT_QUESTION_IMAGE_FOLDER = 50;
+    int SELECT_SOLTUTION_IMAGE_FOLDER = 55;
     int SELECT_SOLUTION_IMAGE_REQUEST_CODE = 30;
     private Uri imageUri,solutionImageUri;
 
@@ -150,6 +162,36 @@ public class AddQuestion extends AppCompatActivity {
         binding.check2.setOnCheckedChangeListener(onCheckedChangeListener);
         binding.check3.setOnCheckedChangeListener(onCheckedChangeListener);
         binding.check4.setOnCheckedChangeListener(onCheckedChangeListener);
+
+        binding.multipleQuestion.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                binding.questionlayer.setVisibility(View.GONE);
+                binding.quefolder.setVisibility(View.VISIBLE);
+                binding.ansfolder.setVisibility(View.VISIBLE);
+                binding.addMultipleQuestion.setVisibility(View.VISIBLE);
+
+            }
+        });
+
+        binding.singleQuestion.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                binding.questionlayer.setVisibility(View.VISIBLE);
+                binding.quefolder.setVisibility(View.GONE);
+                binding.ansfolder.setVisibility(View.GONE);
+                binding.addMultipleQuestion.setVisibility(View.GONE);
+            }
+        });
+
+
+        binding.addMultipleQuestion.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(AddQuestion.this, "Question "+questionImageMap.size(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(AddQuestion.this, "solution "+solutionImageMap.size(), Toast.LENGTH_SHORT).show();
+              }
+        });
 
         binding.qtype.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -238,6 +280,28 @@ public class AddQuestion extends AppCompatActivity {
                 studyCategoryName = binding.studyCategory.getText().toString();
                 getQuestionPaperList(categoryName, subCategoryName, studyCategoryName);
 
+            }
+        });
+
+        binding.quefolder.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                intent.setType("image/*");
+                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                startActivityForResult(intent, SELECT_QUESTION_IMAGE_FOLDER);
+            }
+        });
+
+        binding.ansfolder.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                intent.setType("image/*");
+                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                startActivityForResult(intent, SELECT_SOLTUTION_IMAGE_FOLDER);
             }
         });
 
@@ -406,7 +470,6 @@ public class AddQuestion extends AppCompatActivity {
 
     }
 
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -438,6 +501,16 @@ public class AddQuestion extends AppCompatActivity {
                 if (solutionImageUri != null) {
                     startCrop(solutionImageUri, UCROP_SOLUTION_REQUEST_CODE);
                 }
+            }else if (requestCode==SELECT_QUESTION_IMAGE_FOLDER || requestCode == SELECT_SOLTUTION_IMAGE_FOLDER){
+                if (requestCode==SELECT_QUESTION_IMAGE_FOLDER){
+                    questionImageMap.clear();
+                    handleImageResult(requestCode, data);
+                }else{
+                    solutionImageMap.clear();
+                    handleImageResult(requestCode, data);
+                }
+
+
             } else if (requestCode == UCROP_SOLUTION_REQUEST_CODE) {
                 // For solution image cropping
                 final Uri resultUriSolution = UCrop.getOutput(data);
@@ -453,11 +526,15 @@ public class AddQuestion extends AppCompatActivity {
                     }
                 }
             }
-        } else if (resultCode == UCrop.RESULT_ERROR) {
+        }else if (resultCode == UCrop.RESULT_ERROR) {
             final Throwable cropError = UCrop.getError(data);
             Toast.makeText(this, "Cropping failed: " + cropError.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
+
+
+
+
 
     private void startCrop(@NonNull Uri uri, int code) {
         // Make the destination file name unique
@@ -472,18 +549,13 @@ public class AddQuestion extends AppCompatActivity {
         options.setCompressionQuality(100);
         options.setHideBottomControls(true);
         options.setFreeStyleCropEnabled(true);
-
         UCrop.of(uri, destinationUri)
-                .withAspectRatio(16, 9) // Adjust aspect ratio as needed
-                .withMaxResultSize(1080, 720) // Adjust size as needed
+                .withAspectRatio(0.5f, 0.5f)
+                .withMaxResultSize(800, 800)
                 .withOptions(options)
                 .start(this, code);
+
     }
-
-
-
-
-
     public void getCategoryList() {
         database.collection("categories")
                 .addSnapshotListener(new EventListener<QuerySnapshot>() {
@@ -1081,5 +1153,66 @@ public class AddQuestion extends AppCompatActivity {
                     handleError("Error fetching questions");
                 });
     }
+
+
+
+    private void handleImageResult(int requestCode, Intent data) {
+        if (data != null) {
+            ClipData clipData = data.getClipData();
+            if (clipData != null) {
+                for (int i = 0; i < clipData.getItemCount(); i++) {
+                    Uri imageUri = clipData.getItemAt(i).getUri();
+                    String imageName = getFileName(imageUri);
+
+                    if (requestCode == SELECT_QUESTION_IMAGE_FOLDER) {
+                        questionImageMap.put(imageName, imageUri.toString());
+                    } else if (requestCode == SELECT_SOLTUTION_IMAGE_FOLDER) {
+                        solutionImageMap.put(imageName, imageUri.toString());
+                    }
+                }
+            } else {
+                Uri imageUri = data.getData();
+                if (imageUri != null) {
+                    String imageName = getFileName(imageUri);
+
+                    if (requestCode == SELECT_QUESTION_IMAGE_FOLDER) {
+                        questionImageMap.put(imageName, imageUri.toString());
+                    } else if (requestCode == SELECT_SOLTUTION_IMAGE_FOLDER) {
+                        solutionImageMap.put(imageName, imageUri.toString());
+                    }
+                }
+            }
+        }
+    }
+
+    // Function to extract file name from URI
+    @SuppressLint("Range")
+    private String getFileName(Uri uri) {
+        String result = null;
+        if (uri.getScheme().equals("content")) {
+            Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+            try {
+                if (cursor != null && cursor.moveToFirst()) {
+                    result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+                }
+            } finally {
+                if (cursor != null) {
+                    cursor.close();
+                }
+            }
+        }
+        if (result == null) {
+            result = uri.getPath();
+            int cut = result.lastIndexOf('/');
+            if (cut != -1) {
+                result = result.substring(cut + 1);
+            }
+        }
+        return result;
+    }
+   
+
+
+
 
 }

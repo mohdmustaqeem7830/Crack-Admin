@@ -52,5 +52,5 @@ dependencies {
     implementation("com.google.firebase:firebase-storage")
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.github.yalantis:ucrop:2.2.10")
-
+    implementation("com.vanniktech:android-image-cropper:4.6.0")
 }

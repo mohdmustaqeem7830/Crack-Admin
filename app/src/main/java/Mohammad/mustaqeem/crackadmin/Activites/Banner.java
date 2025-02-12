@@ -201,8 +201,6 @@ public class Banner extends AppCompatActivity {
         options.setFreeStyleCropEnabled(true);
 
         UCrop.of(uri, destinationUri)
-                .withAspectRatio(16, 9) // Adjust aspect ratio as needed
-                .withMaxResultSize(1080, 720) // Adjust size as needed
                 .withOptions(options)
                 .start(this, UCROP_REQUEST_CODE);
     }
