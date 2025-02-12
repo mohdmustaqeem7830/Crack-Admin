@@ -77,6 +77,8 @@ public class AddQuestion extends AppCompatActivity {
     String[] subCategoryArray;
     String[] qpArray;
     Dialog cropDialogue;
+    String questionName;
+    int totalQuestions;
     String[] typeArray;
     FirebaseFirestore database;
     private FirebaseStorage storage;
@@ -86,6 +88,7 @@ public class AddQuestion extends AppCompatActivity {
     String catId,subId,qpId;
     HashMap<String, String> questionImageMap = new HashMap<>();
     HashMap<String, String> solutionImageMap = new HashMap<>();
+    Iterator<Map.Entry<String, String>> questionIterator;
 
     String downloadUrlLink,solutiondownloadUrlLink;
 
@@ -97,10 +100,14 @@ public class AddQuestion extends AppCompatActivity {
     ArrayList<AddQuestionPaperModel> qplist;
 
     int SELECT_IMAGE_REQUEST_CODE = 25;
+
+    int currentIndex ;
     int SELECT_QUESTION_IMAGE_FOLDER = 50;
     int SELECT_SOLTUTION_IMAGE_FOLDER = 55;
     int SELECT_SOLUTION_IMAGE_REQUEST_CODE = 30;
     private Uri imageUri,solutionImageUri;
+
+    ProgressDialog progressDialog;
 
     private ProgressDialog dialog;
 
@@ -108,6 +115,8 @@ public class AddQuestion extends AppCompatActivity {
     int index;
 
     String type = "MCQ";
+
+    String multiple ;
 
     String question, option1, option2, option3, option4, answer,solution;
 
@@ -188,9 +197,24 @@ public class AddQuestion extends AppCompatActivity {
         binding.addMultipleQuestion.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(AddQuestion.this, "Question "+questionImageMap.size(), Toast.LENGTH_SHORT).show();
-              }
+                totalQuestions = questionImageMap.size();
+                if (totalQuestions == 0) {
+                    Toast.makeText(v.getContext(), "No images to upload!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                progressDialog = new ProgressDialog(v.getContext());
+                progressDialog.setTitle("Uploading Questions");
+                progressDialog.setCancelable(false);
+                progressDialog.show();
+
+                questionIterator = questionImageMap.entrySet().iterator();
+                currentIndex = 1;
+                uploadNextImage(questionIterator, progressDialog, currentIndex, totalQuestions);
+            }
         });
+
+
 
         binding.qtype.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -882,6 +906,11 @@ public class AddQuestion extends AppCompatActivity {
                                         .addOnCompleteListener(task -> {
                                             dialog.dismiss();
                                             if (task.isSuccessful()) {
+                                                if (multiple.equals("multiple")){
+                                                    questionIterator.remove();
+                                                    solutionImageMap.remove(questionName);
+                                                    uploadNextImage(questionIterator, progressDialog, currentIndex + 1, totalQuestions);
+                                                }
                                                 Toast.makeText(AddQuestion.this, "Question Added Successfully", Toast.LENGTH_SHORT).show();
                                                 clearInputFields(type);
                                             } else {
@@ -1209,9 +1238,37 @@ public class AddQuestion extends AppCompatActivity {
         }
         return result;
     }
-   
 
+    private void uploadNextImage( Iterator<Map.Entry<String, String>> questionIterator,
+                                 ProgressDialog progressDialog, int currentIndex, int totalQuestions) {
+        if (!questionIterator.hasNext()) {
+            progressDialog.dismiss();
+            Toast.makeText(progressDialog.getContext(), "All images uploaded successfully!", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
+        Map.Entry<String, String> questionEntry = questionIterator.next();
+        questionName = questionEntry.getKey();
+        String questionUrl = questionEntry.getValue();
+        imageUri =Uri.parse(questionUrl);
 
+        if (solutionImageMap.containsKey(questionName)) {
+            String solutionUrl = solutionImageMap.get(questionName);
+            solutionImageUri = Uri.parse(solutionUrl);
+            question="";
+            multiple = "multiple";
+            answer="";
+            option1="1";
+            option2="2";
+            option3="3";
+            option4="4";
+
+            // Update ProgressDialog message
+            progressDialog.setMessage("Uploading " + currentIndex + "/" + totalQuestions + ": " + questionName);
+            uploadSolutionImage();
+        } else {
+            uploadNextImage(questionIterator, progressDialog, currentIndex + 1, totalQuestions);
+        }
+    }
 
 }
