@@ -56,6 +56,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -86,8 +87,9 @@ public class AddQuestion extends AppCompatActivity {
     int UCROP_SOLUTION_REQUEST_CODE = 45;
 
     String catId,subId,qpId;
-    HashMap<String, String> questionImageMap = new HashMap<>();
-    HashMap<String, String> solutionImageMap = new HashMap<>();
+    LinkedHashMap<String, String> questionImageMap = new LinkedHashMap<>();
+    LinkedHashMap<String, String> solutionImageMap = new LinkedHashMap<>();
+
     Iterator<Map.Entry<String, String>> questionIterator;
 
     String downloadUrlLink,solutiondownloadUrlLink;
@@ -118,7 +120,7 @@ public class AddQuestion extends AppCompatActivity {
 
     String multiple ;
 
-    String question, option1, option2, option3, option4, answer,solution;
+    String question="", option1="1", option2="2", option3="3", option4="4", answer="",solution="";
 
 
     @Override
@@ -148,7 +150,6 @@ public class AddQuestion extends AppCompatActivity {
         studyCategoryName = getIntent().getStringExtra("studyCategoryName");
         qpName = getIntent().getStringExtra("qpName");
         qId = getIntent().getStringExtra("qId");
-
         String qpId = getIntent().getStringExtra("qpId");
 
         if (categoryName != null) {
@@ -457,6 +458,10 @@ public class AddQuestion extends AppCompatActivity {
                 binding.option2.setText("b");
                 binding.option3.setText("c");
                 binding.option4.setText("d");
+                option1="a";
+                option2="b";
+                option3="c";
+                option4="d";
             }
         });
 
@@ -467,6 +472,10 @@ public class AddQuestion extends AppCompatActivity {
                 binding.option2.setText("(ii)");
                 binding.option3.setText("(iii)");
                 binding.option4.setText("(iv)");
+                option1="(i)";
+                option2="(ii)";
+                option3="(iii)";
+                option4="(iv)";
             }
         });
 
@@ -477,6 +486,10 @@ public class AddQuestion extends AppCompatActivity {
                 binding.option2.setText("(II)");
                 binding.option3.setText("(III)");
                 binding.option4.setText("(IV)");
+                option1="(I)";
+                option2="(II)";
+                option3="(III)";
+                option4="(IV)";
             }
         });
 
@@ -487,6 +500,10 @@ public class AddQuestion extends AppCompatActivity {
                 binding.option2.setText("");
                 binding.option3.setText("");
                 binding.option4.setText("");
+                option1="";
+                option2="";
+                option3="";
+                option4="";
             }
         });
 
@@ -1192,9 +1209,9 @@ public class AddQuestion extends AppCompatActivity {
                     String imageName = getFileName(imageUri);
 
                     if (requestCode == SELECT_QUESTION_IMAGE_FOLDER) {
-                        questionImageMap.put(imageName, imageUri.toString());
+                        questionImageMap.put(imageName, imageUri.toString()); // Order maintain hoga
                     } else if (requestCode == SELECT_SOLTUTION_IMAGE_FOLDER) {
-                        solutionImageMap.put(imageName, imageUri.toString());
+                        solutionImageMap.put(imageName, imageUri.toString()); // Order maintain hoga
                     }
                 }
             } else {
@@ -1211,6 +1228,7 @@ public class AddQuestion extends AppCompatActivity {
             }
         }
     }
+
 
     // Function to extract file name from URI
     @SuppressLint("Range")
@@ -1253,14 +1271,7 @@ public class AddQuestion extends AppCompatActivity {
             String solutionUrl = solutionImageMap.get(questionName);
             solutionImageUri = Uri.parse(solutionUrl);
             imageUri =Uri.parse(questionUrl);
-            question="";
-            solution="";
             multiple = "multiple";
-            answer="";
-            option1="1";
-            option2="2";
-            option3="3";
-            option4="4";
             // Update ProgressDialog message
             progressDialog.setMessage("Uploading " + currentIndex + "/" + totalQuestions + ": " + questionName);
             uploadSolutionImage();
