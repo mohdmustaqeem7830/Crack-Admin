@@ -199,10 +199,9 @@ public class AddQuestion extends AppCompatActivity {
             public void onClick(View v) {
                 totalQuestions = questionImageMap.size();
                 if (totalQuestions == 0) {
-                    Toast.makeText(v.getContext(), "No images to upload!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(v.getContext(), "No Question to upload!", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
                 progressDialog = new ProgressDialog(v.getContext());
                 progressDialog.setTitle("Uploading Questions");
                 progressDialog.setCancelable(false);
@@ -846,7 +845,6 @@ public class AddQuestion extends AppCompatActivity {
                                 solutiondownloadUrlLink = downloadUri.toString();
                                 if(imageUri!=null){
                                     uploadImage(imageUri, categoryName, subCategoryName, studyCategoryName, qpName, question, option1, option2, option3, option4, answer);
-
                                 }else{
                                     uploadQuestion(categoryName, subCategoryName, studyCategoryName, qpName, question, option1, option2, option3, option4, answer, null);
                                 }
@@ -906,13 +904,14 @@ public class AddQuestion extends AppCompatActivity {
                                         .addOnCompleteListener(task -> {
                                             dialog.dismiss();
                                             if (task.isSuccessful()) {
+                                                Toast.makeText(AddQuestion.this, "Question Added Successfully", Toast.LENGTH_SHORT).show();
+                                                clearInputFields(type);
                                                 if (multiple.equals("multiple")){
                                                     questionIterator.remove();
                                                     solutionImageMap.remove(questionName);
                                                     uploadNextImage(questionIterator, progressDialog, currentIndex + 1, totalQuestions);
                                                 }
-                                                Toast.makeText(AddQuestion.this, "Question Added Successfully", Toast.LENGTH_SHORT).show();
-                                                clearInputFields(type);
+
                                             } else {
                                                 Toast.makeText(AddQuestion.this, "Failed to add question", Toast.LENGTH_SHORT).show();
                                             }
@@ -1250,19 +1249,18 @@ public class AddQuestion extends AppCompatActivity {
         Map.Entry<String, String> questionEntry = questionIterator.next();
         questionName = questionEntry.getKey();
         String questionUrl = questionEntry.getValue();
-        imageUri =Uri.parse(questionUrl);
-
         if (solutionImageMap.containsKey(questionName)) {
             String solutionUrl = solutionImageMap.get(questionName);
             solutionImageUri = Uri.parse(solutionUrl);
+            imageUri =Uri.parse(questionUrl);
             question="";
+            solution="";
             multiple = "multiple";
             answer="";
             option1="1";
             option2="2";
             option3="3";
             option4="4";
-
             // Update ProgressDialog message
             progressDialog.setMessage("Uploading " + currentIndex + "/" + totalQuestions + ": " + questionName);
             uploadSolutionImage();
