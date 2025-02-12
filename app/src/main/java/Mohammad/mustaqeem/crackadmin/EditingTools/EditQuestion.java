@@ -46,7 +46,7 @@ public class EditQuestion extends AppCompatActivity {
 
     String[] typeArray;
 
-    String catId;
+    String catId, subId, qpId, subjectId;
 
     String categoryName,subCategoryName,studyCategoryName,subjectName,qpname,qtype;
 
@@ -199,35 +199,16 @@ public class EditQuestion extends AppCompatActivity {
                 });
     }
     public void getSubjectQuestionPaperList() {
-        // Get the category ID
 
-        database.collection("categories").whereEqualTo("categoryName", categoryName).get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    if (queryDocumentSnapshots.isEmpty()) {
-                        Toast.makeText(EditQuestion.this, "No categories found", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    String catId = queryDocumentSnapshots.getDocuments().get(0).getId();
-
-                    // Get the sub-category ID
-                    database.collection("categories").document(catId).collection("subCategories")
-                            .whereEqualTo("subCategoryName", subCategoryName).get()
-                            .addOnSuccessListener(queryDocumentSnapshots1 -> {
-                                if (queryDocumentSnapshots1.isEmpty()) {
-                                    dialog.dismiss();
-                                    Toast.makeText(EditQuestion.this, "No sub-categories found", Toast.LENGTH_SHORT).show();
-                                    return;
-                                }
-                                String subcatId = queryDocumentSnapshots1.getDocuments().get(0).getId();
 
                                 // Get the question papers
-                                database.collection("categories").document(catId).collection("subCategories").document(subcatId)
+                                database.collection("categories").document(catId).collection("subCategories").document(subId)
                                         .collection(studyCategoryName).whereEqualTo("subjectName",subjectName).get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                                             @Override
                                             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                                                String subjectId =  queryDocumentSnapshots.getDocuments().get(0).getId();
+                                                subjectId =  queryDocumentSnapshots.getDocuments().get(0).getId();
                                                 database.collection("categories").document(catId)
-                                                        .collection("subCategories").document(subcatId)
+                                                        .collection("subCategories").document(subId)
                                                         .collection(studyCategoryName).document(subjectId)
                                                         .collection("subject_question_paper").get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                                                             @Override
@@ -250,16 +231,7 @@ public class EditQuestion extends AppCompatActivity {
                                                         });
                                             }
                                         });
-                            })
-                            .addOnFailureListener(e -> {
-                                dialog.dismiss();
-                                Toast.makeText(EditQuestion.this, "Failed to fetch sub-categories", Toast.LENGTH_SHORT).show();
-                            });
-                })
-                .addOnFailureListener(e -> {
-                    dialog.dismiss();
-                    Toast.makeText(EditQuestion.this, "Failed to fetch categories", Toast.LENGTH_SHORT).show();
-                });
+
     }
     private void getSubCategory(String categoryName) {
         database.collection("categories").whereEqualTo("categoryName", categoryName).get()
@@ -268,7 +240,7 @@ public class EditQuestion extends AppCompatActivity {
                     public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                         if (!queryDocumentSnapshots.isEmpty()) {
                             DocumentSnapshot snapshot = queryDocumentSnapshots.getDocuments().get(0);
-                            String catId = snapshot.getId();
+                            catId = snapshot.getId();
 
                             database.collection("categories").document(catId).collection("subCategories").get()
                                     .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
@@ -328,17 +300,7 @@ public class EditQuestion extends AppCompatActivity {
     }
 
     public void getQuestionPaperList(String categoryName, String subCategoryName, String studyCategoryName) {
-        // Get the category ID
 
-        database.collection("categories").whereEqualTo("categoryName", categoryName).get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    if (queryDocumentSnapshots.isEmpty()) {
-                        Toast.makeText(EditQuestion.this, "No categories found", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    String catId = queryDocumentSnapshots.getDocuments().get(0).getId();
-
-                    // Get the sub-category ID
                     database.collection("categories").document(catId).collection("subCategories")
                             .whereEqualTo("subCategoryName", subCategoryName).get()
                             .addOnSuccessListener(queryDocumentSnapshots1 -> {
@@ -347,10 +309,10 @@ public class EditQuestion extends AppCompatActivity {
                                     Toast.makeText(EditQuestion.this, "No sub-categories found", Toast.LENGTH_SHORT).show();
                                     return;
                                 }
-                                String subcatId = queryDocumentSnapshots1.getDocuments().get(0).getId();
+                                subId = queryDocumentSnapshots1.getDocuments().get(0).getId();
 
                                 // Get the question papers
-                                database.collection("categories").document(catId).collection("subCategories").document(subcatId)
+                                database.collection("categories").document(catId).collection("subCategories").document(subId)
                                         .collection(studyCategoryName).get()
                                         .addOnSuccessListener(queryDocumentSnapshots2 -> {
                                             if (!queryDocumentSnapshots2.isEmpty()) {
@@ -378,11 +340,6 @@ public class EditQuestion extends AppCompatActivity {
                                 dialog.dismiss();
                                 Toast.makeText(EditQuestion.this, "Failed to fetch sub-categories", Toast.LENGTH_SHORT).show();
                             });
-                })
-                .addOnFailureListener(e -> {
-                    dialog.dismiss();
-                    Toast.makeText(EditQuestion.this, "Failed to fetch categories", Toast.LENGTH_SHORT).show();
-                });
     }
 
     private void getTypeList() {
@@ -478,20 +435,7 @@ private void showToastAndDismissDialog(String message) {
 }
 
     public void getSubjectList() {
-        // Fetch categories
-        database.collection("categories")
-                .whereEqualTo("categoryName", categoryName)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    if (queryDocumentSnapshots.isEmpty()) {
-                        showToast("No categories found");
-                        return;
-                    }
 
-                    // Get category ID
-                    String catId = queryDocumentSnapshots.getDocuments().get(0).getId();
-
-                    // Fetch sub-categories
                     database.collection("categories").document(catId)
                             .collection("subCategories")
                             .whereEqualTo("subCategoryName", subCategoryName)
@@ -504,11 +448,11 @@ private void showToastAndDismissDialog(String message) {
                                 }
 
                                 // Get sub-category ID
-                                String subcatId = subCategorySnapshots.getDocuments().get(0).getId();
+                                subId = subCategorySnapshots.getDocuments().get(0).getId();
 
                                 // Fetch subjects
                                 database.collection("categories").document(catId)
-                                        .collection("subCategories").document(subcatId)
+                                        .collection("subCategories").document(subId)
                                         .collection(studyCategoryName).get()
                                         .addOnSuccessListener(subjectSnapshots -> {
                                             List<String> subjectList = new ArrayList<>();
@@ -536,11 +480,6 @@ private void showToastAndDismissDialog(String message) {
                                 showToast("Failed to fetch sub-categories");
                                 dialog.dismiss();
                             });
-                })
-                .addOnFailureListener(e -> {
-                    showToast("Failed to fetch categories");
-                    dialog.dismiss();
-                });
     }
 
     private void showToast(String message) {
