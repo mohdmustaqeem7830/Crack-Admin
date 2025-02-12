@@ -712,7 +712,7 @@ public class EditQuestion extends AppCompatActivity {
                     .collection("subCategories")
                     .document(subId)
                     .collection(studyCategoryName)
-                    .document(subjectId).collection("subject_question_paper")stat
+                    .document(subjectId).collection("subject_question_paper")
                     .document(qpId)
                     .collection("questions")
                     .whereEqualTo("index", index + 1);  // Use 'index' here, which is effectively final
