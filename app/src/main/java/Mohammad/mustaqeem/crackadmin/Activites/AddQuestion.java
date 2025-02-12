@@ -1272,7 +1272,6 @@ public class AddQuestion extends AppCompatActivity {
             solutionImageUri = Uri.parse(solutionUrl);
             imageUri =Uri.parse(questionUrl);
             multiple = "multiple";
-            // Update ProgressDialog message
             progressDialog.setMessage("Uploading " + currentIndex + "/" + totalQuestions + ": " + questionName);
             uploadSolutionImage();
         } else {

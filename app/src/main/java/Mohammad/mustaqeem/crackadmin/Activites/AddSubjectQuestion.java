@@ -3,13 +3,16 @@ package Mohammad.mustaqeem.crackadmin.Activites;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.ClipData;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.provider.OpenableColumns;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -43,6 +46,8 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -63,21 +68,32 @@ public class AddSubjectQuestion extends AppCompatActivity {
     String[] qpArray;
 
     String[] typeArray;
+
+    int totalQuestions ;
+    ProgressDialog progressDialog;
+    String questionName;
     int  UCROP_REQUEST_CODE = 40;
     int UCROP_SOLUTION_REQUEST_CODE = 37;
     FirebaseFirestore database;
     private FirebaseStorage storage;
 
     String catId;
+    LinkedHashMap<String, String> questionImageMap = new LinkedHashMap<>();
+    LinkedHashMap<String, String> solutionImageMap = new LinkedHashMap<>();
+    Iterator<Map.Entry<String, String>> questionIterator;
 
     String downloadUrlLink,solutiondownloadUrlLink;
 
-    String categoryName, subCategoryName, studyCategoryName, qpName, qId,subjectName,solution;
+    String categoryName, subCategoryName, studyCategoryName, qpName, qId,subjectName;
 
     ArrayList<AddCategoryModel> categoriesList;
     ArrayList<AddSubCategoryModel> subCategoriesList;
 
     ArrayList<AddQuestionPaperModel> qplist;
+    int currentIndex ;
+    String multiple ;
+    int SELECT_QUESTION_IMAGE_FOLDER = 50;
+    int SELECT_SOLTUTION_IMAGE_FOLDER = 55;
 
     int SELECT_IMAGE_REQUEST_CODE = 25;
     int SELECT_SOLUTION_IMAGE_REQUEST_CODE = 30;
@@ -90,7 +106,7 @@ public class AddSubjectQuestion extends AppCompatActivity {
 
     String type = "MCQ";
 
-    String question, option1, option2, option3, option4, answer;
+    String question="", option1="1", option2="2", option3="3", option4="4", answer="",solution="";
 
 
     @Override
@@ -147,6 +163,46 @@ public class AddSubjectQuestion extends AppCompatActivity {
         binding.check2.setOnCheckedChangeListener(onCheckedChangeListener);
         binding.check3.setOnCheckedChangeListener(onCheckedChangeListener);
         binding.check4.setOnCheckedChangeListener(onCheckedChangeListener);
+
+        binding.multipleQuestion.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                binding.questionlayer.setVisibility(View.GONE);
+                binding.quefolder.setVisibility(View.VISIBLE);
+                binding.ansfolder.setVisibility(View.VISIBLE);
+                binding.addMultipleQuestion.setVisibility(View.VISIBLE);
+
+            }
+        });
+
+        binding.singleQuestion.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                binding.questionlayer.setVisibility(View.VISIBLE);
+                binding.quefolder.setVisibility(View.GONE);
+                binding.ansfolder.setVisibility(View.GONE);
+                binding.addMultipleQuestion.setVisibility(View.GONE);
+            }
+        });
+
+        binding.addMultipleQuestion.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                totalQuestions = questionImageMap.size();
+                if (totalQuestions == 0) {
+                    Toast.makeText(v.getContext(), "No Question to upload!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                progressDialog = new ProgressDialog(v.getContext());
+                progressDialog.setTitle("Uploading Questions");
+                progressDialog.setCancelable(false);
+                progressDialog.show();
+
+                questionIterator = questionImageMap.entrySet().iterator();
+                currentIndex = 1;
+                uploadNextImage(questionIterator, progressDialog, currentIndex, totalQuestions);
+            }
+        });
 
         binding.qtype.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -220,6 +276,28 @@ public class AddSubjectQuestion extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 studyCategoryName = binding.studyCategory.getText().toString();
                 getSubjectList();
+            }
+        });
+
+        binding.quefolder.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                intent.setType("image/*");
+                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                startActivityForResult(intent, SELECT_QUESTION_IMAGE_FOLDER);
+            }
+        });
+
+        binding.ansfolder.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                intent.setType("image/*");
+                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                startActivityForResult(intent, SELECT_SOLTUTION_IMAGE_FOLDER);
             }
         });
 
@@ -388,50 +466,59 @@ public class AddSubjectQuestion extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        //for question image
+        if (resultCode == RESULT_OK && data != null) {
+            if (requestCode == SELECT_IMAGE_REQUEST_CODE) {
+                // For question image selection
+                imageUri = data.getData();
+                if (imageUri != null) {
+                    startCrop(imageUri, UCROP_REQUEST_CODE);
+                }
+            } else if (requestCode == UCROP_REQUEST_CODE) {
+                // For question image cropping
+                final Uri resultUriQuestion = UCrop.getOutput(data);
+                if (resultUriQuestion != null) {
+                    imageUri = resultUriQuestion;
+                    try {
+                        binding.question.setText(imageUri.toString());
+                        InputStream imageStream = getContentResolver().openInputStream(imageUri);
+                        Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
+                        binding.image.setImageBitmap(selectedImage);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            } else if (requestCode == SELECT_SOLUTION_IMAGE_REQUEST_CODE) {
+                // For solution image selection
+                solutionImageUri = data.getData();
+                if (solutionImageUri != null) {
+                    startCrop(solutionImageUri, UCROP_SOLUTION_REQUEST_CODE);
+                }
+            }else if (requestCode==SELECT_QUESTION_IMAGE_FOLDER || requestCode == SELECT_SOLTUTION_IMAGE_FOLDER){
+                if (requestCode==SELECT_QUESTION_IMAGE_FOLDER){
+                    questionImageMap.clear();
+                    handleImageResult(requestCode, data);
+                }else{
+                    solutionImageMap.clear();
+                    handleImageResult(requestCode, data);
+                }
 
-        if (requestCode == SELECT_IMAGE_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
-            imageUri = data.getData();
-            if (imageUri != null) {
-                startCrop(imageUri,UCROP_REQUEST_CODE);
-            }
-        } else if (requestCode == UCROP_REQUEST_CODE && resultCode == RESULT_OK) {
-            final Uri resultUriquestion = UCrop.getOutput(data);
-            if (resultUriquestion != null) {
-                imageUri = resultUriquestion; // Update imageUri with cropped image
-                try {
-                    InputStream imageStream = getContentResolver().openInputStream(imageUri);
-                    Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
-                    binding.image.setImageBitmap(selectedImage);
-                } catch (Exception e) {
-                    e.printStackTrace();
+
+            } else if (requestCode == UCROP_SOLUTION_REQUEST_CODE) {
+                // For solution image cropping
+                final Uri resultUriSolution = UCrop.getOutput(data);
+                if (resultUriSolution != null) {
+                    solutionImageUri = resultUriSolution;
+                    try {
+                        binding.solution.setText(solutionImageUri.toString());
+                        InputStream imageStream = getContentResolver().openInputStream(solutionImageUri);
+                        Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
+                        binding.solutionImage.setImageBitmap(selectedImage);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }
-        } else if (resultCode == UCrop.RESULT_ERROR) {
-            final Throwable cropError = UCrop.getError(data);
-            Toast.makeText(this, "Cropping failed: " + cropError.getMessage(), Toast.LENGTH_SHORT).show();
-        }
-
-        //for solution image
-
-        if (requestCode == SELECT_SOLUTION_IMAGE_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
-            solutionImageUri = data.getData();
-            if (solutionImageUri != null) {
-                startCrop(solutionImageUri,UCROP_SOLUTION_REQUEST_CODE);
-            }
-        } else if (requestCode ==UCROP_SOLUTION_REQUEST_CODE  && resultCode == RESULT_OK) {
-            final Uri resultUri = UCrop.getOutput(data);
-            if (resultUri != null) {
-                solutionImageUri = resultUri; // Update imageUri with cropped image
-                try {
-                    InputStream imageStream = getContentResolver().openInputStream(solutionImageUri);
-                    Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
-                    binding.solutionImage.setImageBitmap(selectedImage);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        } else if (resultCode == UCrop.RESULT_ERROR) {
+        }else if (resultCode == UCrop.RESULT_ERROR) {
             final Throwable cropError = UCrop.getError(data);
             Toast.makeText(this, "Cropping failed: " + cropError.getMessage(), Toast.LENGTH_SHORT).show();
         }
@@ -757,7 +844,7 @@ public class AddSubjectQuestion extends AppCompatActivity {
     }
     private void uploadImage(Uri imageUri) {
 
-        StorageReference storageRef = storage.getReference().child("question_images/" + System.currentTimeMillis() + ".jpg");
+        StorageReference storageRef = storage.getReference().child(categoryName+"/"+subCategoryName+"/"+studyCategoryName+"/"+subjectName+"/"+qpName+"/"+"question_images/" + System.currentTimeMillis() + ".jpg");
 
         storageRef.putFile(imageUri)
                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -784,7 +871,7 @@ public class AddSubjectQuestion extends AppCompatActivity {
 
     private void uploadSolutionImage() {
 
-        StorageReference storageRef = storage.getReference().child("solutionImage/" + System.currentTimeMillis() + ".jpg");
+        StorageReference storageRef = storage.getReference().child(categoryName+"/"+subCategoryName+"/"+studyCategoryName+"/"+subjectName+"/"+qpName+"/"+"solutionImage/" + System.currentTimeMillis() + ".jpg");
 
         storageRef.putFile(solutionImageUri)
                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -913,8 +1000,13 @@ public class AddSubjectQuestion extends AppCompatActivity {
                                                                             .addOnCompleteListener(task -> {
                                                                                 dialog.dismiss();
                                                                                 if (task.isSuccessful()) {
-                                                                                    Toast.makeText(AddSubjectQuestion.this, "Question Added Successfully", Toast.LENGTH_SHORT).show();
                                                                                     clearInputFields(type);
+                                                                                    Toast.makeText(AddSubjectQuestion.this, "Question Added Successfully", Toast.LENGTH_SHORT).show();
+                                                                                    if (multiple.equals("multiple")){
+                                                                                        questionIterator.remove();
+                                                                                        solutionImageMap.remove(questionName);
+                                                                                        uploadNextImage(questionIterator, progressDialog, currentIndex + 1, totalQuestions);
+                                                                                    }
                                                                                 } else {
                                                                                     Toast.makeText(AddSubjectQuestion.this, "Failed to add question", Toast.LENGTH_SHORT).show();
                                                                                 }
@@ -1268,5 +1360,85 @@ public class AddSubjectQuestion extends AppCompatActivity {
                         Toast.makeText(AddSubjectQuestion.this, "Failed to upload image", Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+
+    private void handleImageResult(int requestCode, Intent data) {
+        if (data != null) {
+            ClipData clipData = data.getClipData();
+            if (clipData != null) {
+                for (int i = 0; i < clipData.getItemCount(); i++) {
+                    Uri imageUri = clipData.getItemAt(i).getUri();
+                    String imageName = getFileName(imageUri);
+
+                    if (requestCode == SELECT_QUESTION_IMAGE_FOLDER) {
+                        questionImageMap.put(imageName, imageUri.toString()); // Order maintain hoga
+                    } else if (requestCode == SELECT_SOLTUTION_IMAGE_FOLDER) {
+                        solutionImageMap.put(imageName, imageUri.toString()); // Order maintain hoga
+                    }
+                }
+            } else {
+                Uri imageUri = data.getData();
+                if (imageUri != null) {
+                    String imageName = getFileName(imageUri);
+
+                    if (requestCode == SELECT_QUESTION_IMAGE_FOLDER) {
+                        questionImageMap.put(imageName, imageUri.toString());
+                    } else if (requestCode == SELECT_SOLTUTION_IMAGE_FOLDER) {
+                        solutionImageMap.put(imageName, imageUri.toString());
+                    }
+                }
+            }
+        }
+    }
+
+
+    // Function to extract file name from URI
+    @SuppressLint("Range")
+    private String getFileName(Uri uri) {
+        String result = null;
+        if (uri.getScheme().equals("content")) {
+            Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+            try {
+                if (cursor != null && cursor.moveToFirst()) {
+                    result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+                }
+            } finally {
+                if (cursor != null) {
+                    cursor.close();
+                }
+            }
+        }
+        if (result == null) {
+            result = uri.getPath();
+            int cut = result.lastIndexOf('/');
+            if (cut != -1) {
+                result = result.substring(cut + 1);
+            }
+        }
+        return result;
+    }
+
+    private void uploadNextImage( Iterator<Map.Entry<String, String>> questionIterator,
+                                  ProgressDialog progressDialog, int currentIndex, int totalQuestions) {
+        if (!questionIterator.hasNext()) {
+            progressDialog.dismiss();
+            Toast.makeText(progressDialog.getContext(), "All images uploaded successfully!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Map.Entry<String, String> questionEntry = questionIterator.next();
+        questionName = questionEntry.getKey();
+        String questionUrl = questionEntry.getValue();
+        if (solutionImageMap.containsKey(questionName)) {
+            String solutionUrl = solutionImageMap.get(questionName);
+            solutionImageUri = Uri.parse(solutionUrl);
+            imageUri =Uri.parse(questionUrl);
+            multiple = "multiple";
+            progressDialog.setMessage("Uploading " + currentIndex + "/" + totalQuestions + ": " + questionName);
+            uploadSolutionImage();
+        } else {
+            uploadNextImage(questionIterator, progressDialog, currentIndex + 1, totalQuestions);
+        }
     }
 }
