@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "200328111131",
-    "project_id": "crack-competition-990d1",
-    "storage_bucket": "crack-competition-990d1.appspot.com"
+    "project_number": "925203955465",
+    "project_id": "crackcompetition-591e8",
+    "storage_bucket": "crackcompetition-591e8.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:200328111131:android:bf6a47585ef182a9c384be",
+        "mobilesdk_app_id": "1:925203955465:android:d7b051d7d5a0f9f87a1dd8",
         "android_client_info": {
           "package_name": "Mohammad.mustaqeem.crackadmin"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyA5mWdXW__1_LcsnIuHJMSWJKL9usxxcN0"
+          "current_key": "AIzaSyB23i5j4P7bow4teVJnJd-ooKt-ZPNc5qQ"
         }
       ],
       "services": {
@@ -26,7 +26,7 @@
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:200328111131:android:c0a18b286264d92dc384be",
+        "mobilesdk_app_id": "1:925203955465:android:5b2213c5833497647a1dd8",
         "android_client_info": {
           "package_name": "Mohammad.mustaqeem.crackcompetition"
         }
@@ -34,7 +34,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyA5mWdXW__1_LcsnIuHJMSWJKL9usxxcN0"
+          "current_key": "AIzaSyB23i5j4P7bow4teVJnJd-ooKt-ZPNc5qQ"
         }
       ],
       "services": {
